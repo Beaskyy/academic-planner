@@ -1,0 +1,379 @@
+/* @nqb8limited/odel-fe-design-system — semantic theme generated from src/tokens/tokens.ts.
+   Do not edit by hand: run `npm run tokens:css` after changing src/tokens/tokens.ts.
+   Maps the ODEL palette onto the names the components are written against.
+   Self-contained — does not @import tokens.css, see paletteBody() in
+   scripts/generate-tokens-css.mjs for why. Import this file on its own. */
+:root {
+  /* Brand Primary */
+  --color-primary-50: #e8f4ff;
+  --color-primary-100: #c8e4fe;
+  --color-primary-200: #a3d3fd;
+  --color-primary-300: #7ac0fc;
+  --color-primary-400: #4eaafc;
+  --color-primary-500: #046aff;
+  --color-primary-600: #1470e0;
+  --color-primary-700: #105ec2;
+  --color-primary-800: #0c4da4;
+  --color-primary-900: #083a80;
+
+  /* Primary Light */
+  --color-primary-light-100: #f0f8ff;
+  --color-primary-light-200: #e1f1fe;
+  --color-primary-light-300: #d2eafd;
+  --color-primary-light-400: #c3e3fc;
+  --color-primary-light-500: #b4dcfb;
+
+  /* Neutral */
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f5f5f5;
+  --color-neutral-200: #ebebeb;
+  --color-neutral-300: #dcdcdc;
+  --color-neutral-400: #b0b0b0;
+  --color-neutral-500: #808080;
+  --color-neutral-600: #5c5c5c;
+  --color-neutral-700: #3d3d3d;
+  --color-neutral-800: #1f1f1f;
+  --color-neutral-900: #0b0b0b;
+
+  /* Extended Grey */
+  --color-grey-50: #fafafa;
+  --color-grey-100: #f5f5f5;
+  --color-grey-150: #ebebeb;
+  --color-grey-200: #e0e0e0;
+  --color-grey-250: #d4d4d4;
+  --color-grey-300: #c8c8c8;
+  --color-grey-350: #b4b4b4;
+  --color-grey-400: #a0a0a0;
+  --color-grey-450: #8c8c8c;
+  --color-grey-500: #808080;
+  --color-grey-550: #6c6c6c;
+  --color-grey-600: #585858;
+  --color-grey-650: #444;
+  --color-grey-700: #303030;
+  --color-grey-750: #1c1c1c;
+
+  /* White */
+  --color-white-100: #fff;
+  --color-white-200: #fcfcfc;
+  --color-white-300: #f8f8f8;
+  --color-white-400: #f4f4f4;
+  --color-white-500: #f0f0f0;
+
+  /* Black */
+  --color-black-100: #282828;
+  --color-black-200: #1e1e1e;
+  --color-black-300: #141414;
+  --color-black-400: #0a0a0a;
+  --color-black-500: #000;
+
+  /* Semantic - Warning */
+  --color-warning-50: #fffae6;
+  --color-warning-100: #fde694;
+  --color-warning-200: #fcd159;
+  --color-warning-300: #f9b926;
+  --color-warning-400: #f59e0b;
+  --color-warning-500: #d98009;
+  --color-warning-600: #b45309;
+  --color-warning-700: #853806;
+
+  /* Semantic - Error */
+  --color-error-50: #fffafa;
+  --color-error-100: #fef0f0;
+  --color-error-200: #f69999;
+  --color-error-300: #ef6666;
+  --color-error-400: #dc2626;
+  --color-error-500: #bf1f1f;
+  --color-error-600: #991b1b;
+  --color-error-700: #701313;
+
+  /* Semantic - Info */
+  --color-info-50: #dbeafe;
+  --color-info-100: #bad6fd;
+  --color-info-200: #8fbafc;
+  --color-info-300: #639efa;
+  --color-info-400: #3b82f6;
+  --color-info-500: #2b66e5;
+  --color-info-600: #1d4ed8;
+  --color-info-700: #1233ad;
+
+  /* Semantic - Success */
+  --color-success-50: #e5fee8;
+  --color-success-100: #c7fdcc;
+  --color-success-200: #8ff699;
+  --color-success-300: #61ef6b;
+  --color-success-400: #38dc42;
+  --color-success-500: #21bf2b;
+  --color-success-600: #1a9921;
+  --color-success-700: #127017;
+  --color-success-text: #239954;
+
+  /* Text */
+  --color-text-heading: #0f172a;
+
+  /* Accent - Purple */
+  --color-accent-purple-50: #faf8fe;
+  --color-accent-purple-100: #edeaf6;
+  --color-accent-purple-200: #dad0f1;
+  --color-accent-purple-300: #b8a1ed;
+  --color-accent-purple-400: #8a5eee;
+  --color-accent-purple-500: #8b5cf6;
+  --color-accent-purple-600: #6222f3;
+  --color-accent-purple-700: #4b11d1;
+  --color-accent-purple-800: #4116a3;
+  --color-accent-purple-900: #351879;
+  --color-accent-purple-950: #2c185a;
+
+  /* Accent - Teal */
+  --color-accent-teal-50: #f6f9f9;
+  --color-accent-teal-100: #f1f8f8;
+  --color-accent-teal-200: #d2efec;
+  --color-accent-teal-300: #a5e9e1;
+  --color-accent-teal-400: #65e6d8;
+  --color-accent-teal-500: #14b8a6;
+  --color-accent-teal-600: #0e8174;
+  --color-accent-teal-700: #0c5a51;
+  --color-accent-teal-800: #0c403b;
+  --color-accent-teal-900: #0a2926;
+  --color-accent-teal-950: #071716;
+
+  /* Accent - Orange */
+  --color-accent-orange-50: #fffcfa;
+  --color-accent-orange-100: #fef3ec;
+  --color-accent-orange-200: #f2ddcf;
+  --color-accent-orange-300: #efc09f;
+  --color-accent-orange-400: #f29859;
+  --color-accent-orange-500: #f97316;
+  --color-accent-orange-600: #cd5705;
+  --color-accent-orange-700: #974208;
+  --color-accent-orange-800: #6b320b;
+  --color-accent-orange-900: #42220b;
+  --color-accent-orange-950: #261509;
+
+  /* Shadows */
+  --shadow-xs: 0px 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-sm: 0px 1px 3px rgba(0, 0, 0, 0.05), 0px 2px 6px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0px 2px 4px -1px rgba(0, 0, 0, 0.06), 0px 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0px 4px 6px -2px rgba(0, 0, 0, 0.05), 0px 8px 24px -4px rgba(0, 0, 0, 0.1);
+  --shadow-xl: 0px 8px 10px -4px rgba(0, 0, 0, 0.06), 0px 20px 40px -8px rgba(0, 0, 0, 0.14);
+
+  /* Surfaces */
+  --background: #fff;
+  --foreground: #0f172a;
+  --card: #fff;
+  --card-foreground: #0f172a;
+  --popover: #fff;
+  --popover-foreground: #0f172a;
+
+  /* Brand */
+  --primary: #046aff;
+  --primary-foreground: #fff;
+  --secondary: #f0f8ff;
+  --secondary-foreground: #046aff;
+
+  /* Muted and accent */
+  --muted: #fafafa;
+  --muted-foreground: #8c8c8c;
+  --accent: #f0f8ff;
+  --accent-foreground: #1470e0;
+
+  /* Status */
+  --destructive: #dc2626;
+  --destructive-foreground: #fff;
+  --success: #21bf2b;
+  --success-foreground: #fff;
+  --warning: #f59e0b;
+  --warning-foreground: #fff;
+  --info: #3b82f6;
+  --info-foreground: #fff;
+
+  /* Lines and focus */
+  --border: #ebebeb;
+  --input: #f5f5f5;
+  --ring: #046aff;
+
+  /* Charts */
+  --chart-1: #046aff;
+  --chart-2: #14b8a6;
+  --chart-3: #8b5cf6;
+  --chart-4: #f97316;
+  --chart-5: #21bf2b;
+
+  /* Sidebar */
+  --sidebar: #fcfcfc;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #046aff;
+  --sidebar-primary-foreground: #fff;
+  --sidebar-accent: #f0f8ff;
+  --sidebar-accent-foreground: #1470e0;
+  --sidebar-border: #ebebeb;
+  --sidebar-ring: #046aff;
+
+  /* Radius — Figma uses 8px on inputs and small buttons, 6px full-width */
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-primary-50: var(--color-primary-50);
+  --color-primary-100: var(--color-primary-100);
+  --color-primary-200: var(--color-primary-200);
+  --color-primary-300: var(--color-primary-300);
+  --color-primary-400: var(--color-primary-400);
+  --color-primary-500: var(--color-primary-500);
+  --color-primary-600: var(--color-primary-600);
+  --color-primary-700: var(--color-primary-700);
+  --color-primary-800: var(--color-primary-800);
+  --color-primary-900: var(--color-primary-900);
+  --color-primary-light-100: var(--color-primary-light-100);
+  --color-primary-light-200: var(--color-primary-light-200);
+  --color-primary-light-300: var(--color-primary-light-300);
+  --color-primary-light-400: var(--color-primary-light-400);
+  --color-primary-light-500: var(--color-primary-light-500);
+  --color-neutral-50: var(--color-neutral-50);
+  --color-neutral-100: var(--color-neutral-100);
+  --color-neutral-200: var(--color-neutral-200);
+  --color-neutral-300: var(--color-neutral-300);
+  --color-neutral-400: var(--color-neutral-400);
+  --color-neutral-500: var(--color-neutral-500);
+  --color-neutral-600: var(--color-neutral-600);
+  --color-neutral-700: var(--color-neutral-700);
+  --color-neutral-800: var(--color-neutral-800);
+  --color-neutral-900: var(--color-neutral-900);
+  --color-grey-50: var(--color-grey-50);
+  --color-grey-100: var(--color-grey-100);
+  --color-grey-150: var(--color-grey-150);
+  --color-grey-200: var(--color-grey-200);
+  --color-grey-250: var(--color-grey-250);
+  --color-grey-300: var(--color-grey-300);
+  --color-grey-350: var(--color-grey-350);
+  --color-grey-400: var(--color-grey-400);
+  --color-grey-450: var(--color-grey-450);
+  --color-grey-500: var(--color-grey-500);
+  --color-grey-550: var(--color-grey-550);
+  --color-grey-600: var(--color-grey-600);
+  --color-grey-650: var(--color-grey-650);
+  --color-grey-700: var(--color-grey-700);
+  --color-grey-750: var(--color-grey-750);
+  --color-white-100: var(--color-white-100);
+  --color-white-200: var(--color-white-200);
+  --color-white-300: var(--color-white-300);
+  --color-white-400: var(--color-white-400);
+  --color-white-500: var(--color-white-500);
+  --color-black-100: var(--color-black-100);
+  --color-black-200: var(--color-black-200);
+  --color-black-300: var(--color-black-300);
+  --color-black-400: var(--color-black-400);
+  --color-black-500: var(--color-black-500);
+  --color-warning-50: var(--color-warning-50);
+  --color-warning-100: var(--color-warning-100);
+  --color-warning-200: var(--color-warning-200);
+  --color-warning-300: var(--color-warning-300);
+  --color-warning-400: var(--color-warning-400);
+  --color-warning-500: var(--color-warning-500);
+  --color-warning-600: var(--color-warning-600);
+  --color-warning-700: var(--color-warning-700);
+  --color-error-50: var(--color-error-50);
+  --color-error-100: var(--color-error-100);
+  --color-error-200: var(--color-error-200);
+  --color-error-300: var(--color-error-300);
+  --color-error-400: var(--color-error-400);
+  --color-error-500: var(--color-error-500);
+  --color-error-600: var(--color-error-600);
+  --color-error-700: var(--color-error-700);
+  --color-info-50: var(--color-info-50);
+  --color-info-100: var(--color-info-100);
+  --color-info-200: var(--color-info-200);
+  --color-info-300: var(--color-info-300);
+  --color-info-400: var(--color-info-400);
+  --color-info-500: var(--color-info-500);
+  --color-info-600: var(--color-info-600);
+  --color-info-700: var(--color-info-700);
+  --color-success-50: var(--color-success-50);
+  --color-success-100: var(--color-success-100);
+  --color-success-200: var(--color-success-200);
+  --color-success-300: var(--color-success-300);
+  --color-success-400: var(--color-success-400);
+  --color-success-500: var(--color-success-500);
+  --color-success-600: var(--color-success-600);
+  --color-success-700: var(--color-success-700);
+  --color-success-text: var(--color-success-text);
+  --color-text-heading: var(--color-text-heading);
+  --color-accent-purple-50: var(--color-accent-purple-50);
+  --color-accent-purple-100: var(--color-accent-purple-100);
+  --color-accent-purple-200: var(--color-accent-purple-200);
+  --color-accent-purple-300: var(--color-accent-purple-300);
+  --color-accent-purple-400: var(--color-accent-purple-400);
+  --color-accent-purple-500: var(--color-accent-purple-500);
+  --color-accent-purple-600: var(--color-accent-purple-600);
+  --color-accent-purple-700: var(--color-accent-purple-700);
+  --color-accent-purple-800: var(--color-accent-purple-800);
+  --color-accent-purple-900: var(--color-accent-purple-900);
+  --color-accent-purple-950: var(--color-accent-purple-950);
+  --color-accent-teal-50: var(--color-accent-teal-50);
+  --color-accent-teal-100: var(--color-accent-teal-100);
+  --color-accent-teal-200: var(--color-accent-teal-200);
+  --color-accent-teal-300: var(--color-accent-teal-300);
+  --color-accent-teal-400: var(--color-accent-teal-400);
+  --color-accent-teal-500: var(--color-accent-teal-500);
+  --color-accent-teal-600: var(--color-accent-teal-600);
+  --color-accent-teal-700: var(--color-accent-teal-700);
+  --color-accent-teal-800: var(--color-accent-teal-800);
+  --color-accent-teal-900: var(--color-accent-teal-900);
+  --color-accent-teal-950: var(--color-accent-teal-950);
+  --color-accent-orange-50: var(--color-accent-orange-50);
+  --color-accent-orange-100: var(--color-accent-orange-100);
+  --color-accent-orange-200: var(--color-accent-orange-200);
+  --color-accent-orange-300: var(--color-accent-orange-300);
+  --color-accent-orange-400: var(--color-accent-orange-400);
+  --color-accent-orange-500: var(--color-accent-orange-500);
+  --color-accent-orange-600: var(--color-accent-orange-600);
+  --color-accent-orange-700: var(--color-accent-orange-700);
+  --color-accent-orange-800: var(--color-accent-orange-800);
+  --color-accent-orange-900: var(--color-accent-orange-900);
+  --color-accent-orange-950: var(--color-accent-orange-950);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+}
