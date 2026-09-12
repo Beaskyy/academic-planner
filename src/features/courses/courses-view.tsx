@@ -5,9 +5,10 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { SharedSidebar } from '@/features/shared/sidebar';
 import { CourseCatalogue } from './components/course-catalogue';
 import { CourseEditor } from './components/course-editor';
+import { CourseEditorBlocked } from './components/course-editor-blocked';
 import { Sparkles } from 'lucide-react';
 
-export type CoursesViewState = 'catalogue' | 'edit';
+export type CoursesViewState = 'catalogue' | 'edit' | 'blocked';
 
 export function CoursesView() {
   const searchParams = useSearchParams();
@@ -20,7 +21,7 @@ export function CoursesView() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (paramView && ['catalogue', 'edit'].includes(paramView)) {
+    if (paramView && ['catalogue', 'edit', 'blocked'].includes(paramView)) {
       setCurrentView(paramView);
     }
   }, [paramView]);
@@ -67,6 +68,15 @@ export function CoursesView() {
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />
         )}
+
+        {currentView === 'blocked' && (
+          <CourseEditorBlocked
+            courseCode={selectedCode}
+            onCancel={() => switchView('catalogue')}
+            onSaveBlockedDraft={() => switchView('catalogue')}
+            onOpenMobileMenu={() => setMobileMenuOpen(true)}
+          />
+        )}
       </main>
 
       {/* ── State Switcher Floating Dock (for review & QA) ─────────── */}
@@ -94,6 +104,16 @@ export function CoursesView() {
           }`}
         >
           Course Editor
+        </button>
+        <button
+          onClick={() => switchView('blocked')}
+          className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
+            currentView === 'blocked'
+              ? 'bg-[#046aff] text-white shadow-xs'
+              : 'text-[#5c5c5c] hover:text-[#1f1f1f] hover:bg-[#f5f5f5]'
+          }`}
+        >
+          APS-08 Blocked
         </button>
       </div>
     </div>

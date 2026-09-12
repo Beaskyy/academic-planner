@@ -6,9 +6,10 @@ import { SharedSidebar } from '@/features/shared/sidebar';
 import { StructuresTree } from './components/structures-tree';
 import { StructureEditor } from './components/structure-editor';
 import { ProgrammeDetail } from './components/programme-detail';
+import { StructureEditorBlocked } from './components/structure-editor-blocked';
 import { Sparkles } from 'lucide-react';
 
-export type StructuresViewState = 'tree' | 'edit' | 'detail';
+export type StructuresViewState = 'tree' | 'edit' | 'detail' | 'blocked';
 
 export function StructuresView() {
   const searchParams = useSearchParams();
@@ -21,7 +22,7 @@ export function StructuresView() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (paramView && ['tree', 'edit', 'detail'].includes(paramView)) {
+    if (paramView && ['tree', 'edit', 'detail', 'blocked'].includes(paramView)) {
       setCurrentView(paramView);
     }
   }, [paramView]);
@@ -79,6 +80,14 @@ export function StructuresView() {
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />
         )}
+
+        {currentView === 'blocked' && (
+          <StructureEditorBlocked
+            onCancel={() => switchView('tree')}
+            onSaveBlockedDraft={() => switchView('tree')}
+            onOpenMobileMenu={() => setMobileMenuOpen(true)}
+          />
+        )}
       </main>
 
       {/* ── State Switcher Floating Dock (for review & QA) ─────────── */}
@@ -116,6 +125,16 @@ export function StructuresView() {
           }`}
         >
           Programme Detail
+        </button>
+        <button
+          onClick={() => switchView('blocked')}
+          className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
+            currentView === 'blocked'
+              ? 'bg-[#046aff] text-white shadow-xs'
+              : 'text-[#5c5c5c] hover:text-[#1f1f1f] hover:bg-[#f5f5f5]'
+          }`}
+        >
+          APS-03 Blocked
         </button>
       </div>
     </div>

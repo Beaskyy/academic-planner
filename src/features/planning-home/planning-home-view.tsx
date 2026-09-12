@@ -6,9 +6,10 @@ import { Sidebar } from './components/sidebar';
 import { ActiveDashboard } from './components/active-dashboard';
 import { EmptyStateDashboard } from './components/empty-state-dashboard';
 import { PreparePeriodView } from './components/prepare-period-view';
+import { PlanReadyDashboard } from './components/plan-ready-dashboard';
 import { Sparkles } from 'lucide-react';
 
-export type PlanningHomeState = 'active' | 'empty' | 'prepare';
+export type PlanningHomeState = 'active' | 'empty' | 'prepare' | 'ready';
 
 export function PlanningHomeView() {
   const searchParams = useSearchParams();
@@ -19,7 +20,7 @@ export function PlanningHomeView() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (paramView && ['active', 'empty', 'prepare'].includes(paramView)) {
+    if (paramView && ['active', 'empty', 'prepare', 'ready'].includes(paramView)) {
       setCurrentView(paramView);
     }
   }, [paramView]);
@@ -42,7 +43,7 @@ export function PlanningHomeView() {
       <Sidebar
         mobileOpen={mobileMenuOpen}
         onCloseMobile={() => setMobileMenuOpen(false)}
-        minimalContext={currentView !== 'active'}
+        minimalContext={currentView !== 'active' && currentView !== 'ready'}
       />
 
       {/* Main Workspace Area */}
@@ -68,10 +69,16 @@ export function PlanningHomeView() {
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />
         )}
+
+        {currentView === 'ready' && (
+          <PlanReadyDashboard
+            onOpenMobileMenu={() => setMobileMenuOpen(true)}
+          />
+        )}
       </main>
 
       {/* ── State Switcher Floating Dock (for review & QA) ─────────── */}
-      <div className="fixed bottom-4 right-4 z-40 bg-white/95 backdrop-blur-md border border-[#ebebeb] shadow-lg rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs select-none">
+      <div className="fixed bottom-4 right-4 z-40 bg-white/95 backdrop-blur-md border border-[#ebebeb] shadow-lg rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs select-none flex-wrap">
         <div className="flex items-center gap-1.5 text-[#808080] pr-2 border-r border-[#ebebeb] font-medium hidden sm:flex">
           <Sparkles className="w-3.5 h-3.5 text-[#046aff]" />
           <span>Figma State:</span>
@@ -85,6 +92,16 @@ export function PlanningHomeView() {
           }`}
         >
           Active Plan
+        </button>
+        <button
+          onClick={() => switchView('ready')}
+          className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
+            currentView === 'ready'
+              ? 'bg-[#1fc16b] text-white shadow-xs'
+              : 'text-[#1fc16b] hover:bg-[#f0fdf4]'
+          }`}
+        >
+          APS-01 Plan Ready
         </button>
         <button
           onClick={() => switchView('empty')}
