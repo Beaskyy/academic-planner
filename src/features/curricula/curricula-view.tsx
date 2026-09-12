@@ -8,9 +8,10 @@ import { CurriculumEditor } from './components/curriculum-editor';
 import { CurriculumDiff } from './components/curriculum-diff';
 import { CohortMigrationWizard } from './components/cohort-migration-wizard';
 import { AcademicRulesView } from './components/academic-rules-view';
+import { CurriculumEditorBlocked } from './components/curriculum-editor-blocked';
 import { Sparkles } from 'lucide-react';
 
-export type CurriculaViewState = 'browser' | 'editor' | 'diff' | 'migration' | 'rules';
+export type CurriculaViewState = 'browser' | 'editor' | 'diff' | 'migration' | 'rules' | 'blocked';
 
 export function CurriculaView() {
   const searchParams = useSearchParams();
@@ -23,7 +24,7 @@ export function CurriculaView() {
   useEffect(() => {
     if (
       paramView &&
-      ['browser', 'editor', 'diff', 'migration', 'rules'].includes(paramView)
+      ['browser', 'editor', 'diff', 'migration', 'rules', 'blocked'].includes(paramView)
     ) {
       setCurrentView(paramView);
     }
@@ -91,6 +92,15 @@ export function CurriculaView() {
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />
         )}
+
+        {currentView === 'blocked' && (
+          <CurriculumEditorBlocked
+            onCancel={() => switchView('browser')}
+            onSaveDraft={() => switchView('browser')}
+            onCompareDiff={() => switchView('diff')}
+            onOpenMobileMenu={() => setMobileMenuOpen(true)}
+          />
+        )}
       </main>
 
       {/* ── State Switcher Floating Dock (for review & QA) ─────────── */}
@@ -118,6 +128,16 @@ export function CurriculaView() {
           }`}
         >
           Curriculum Draft
+        </button>
+        <button
+          onClick={() => switchView('blocked')}
+          className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
+            currentView === 'blocked'
+              ? 'bg-[#ef4444] text-white shadow-xs'
+              : 'text-[#ef4444] hover:bg-[#fef2f2]'
+          }`}
+        >
+          APS-10 Blocked
         </button>
         <button
           onClick={() => switchView('diff')}

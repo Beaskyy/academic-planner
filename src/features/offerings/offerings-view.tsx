@@ -6,9 +6,11 @@ import { SharedSidebar } from '@/features/shared/sidebar';
 import { OfferingsDashboard } from './components/offerings-dashboard';
 import { OfferingEditor } from './components/offering-editor';
 import { StaffSearchModal, StaffMember } from './components/staff-search-modal';
+import { OfferingEditorBlocked } from './components/offering-editor-blocked';
+import { OverrideInvalidatedModal } from './components/override-invalidated-modal';
 import { Sparkles } from 'lucide-react';
 
-export type OfferingsViewState = 'dashboard' | 'edit' | 'staff-search';
+export type OfferingsViewState = 'dashboard' | 'edit' | 'staff-search' | 'blocked';
 
 export function OfferingsView() {
   const searchParams = useSearchParams();
@@ -17,6 +19,7 @@ export function OfferingsView() {
   const paramSection = searchParams.get('section') || 'CSC 301-A';
 
   const [currentView, setCurrentView] = useState<OfferingsViewState>('dashboard');
+  const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState(paramSection);
   const [leadInstructor, setLeadInstructor] = useState({
     name: 'Dr. Charles Ononiwu',
@@ -28,9 +31,12 @@ export function OfferingsView() {
   useEffect(() => {
     if (
       paramView &&
-      ['dashboard', 'edit', 'staff-search'].includes(paramView)
+      ['dashboard', 'edit', 'staff-search', 'blocked'].includes(paramView)
     ) {
       setCurrentView(paramView);
+    }
+    if (paramView === 'override' as any) {
+      setIsOverrideModalOpen(true);
     }
   }, [paramView]);
 
@@ -87,6 +93,14 @@ export function OfferingsView() {
           />
         )}
 
+        {currentView === 'blocked' && (
+          <OfferingEditorBlocked
+            onCancel={() => switchView('dashboard')}
+            onSaveBlockedDraft={() => switchView('dashboard')}
+            onOpenMobileMenu={() => setMobileMenuOpen(true)}
+          />
+        )}
+
         {currentView === 'staff-search' && (
           <StaffSearchModal
             onSelectStaff={handleSelectStaff}
@@ -94,6 +108,16 @@ export function OfferingsView() {
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />
         )}
+
+        <OverrideInvalidatedModal
+          isOpen={isOverrideModalOpen}
+          onClose={() => setIsOverrideModalOpen(false)}
+          onAcknowledge={() => setIsOverrideModalOpen(false)}
+          onRequestNewOverride={() => {
+            setIsOverrideModalOpen(false);
+            switchView('edit');
+          }}
+        />
       </main>
 
       {/* ── State Switcher Floating Dock (for review & QA) ─────────── */}
@@ -121,6 +145,26 @@ export function OfferingsView() {
           }`}
         >
           Offering Editor
+        </button>
+        <button
+          onClick={() => switchView('blocked')}
+          className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
+            currentView === 'blocked'
+              ? 'bg-[#ef4444] text-white shadow-xs'
+              : 'text-[#ef4444] hover:bg-[#fef2f2]'
+          }`}
+        >
+          APS-15 Blocked
+        </button>
+        <button
+          onClick={() => setIsOverrideModalOpen(true)}
+          className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
+            isOverrideModalOpen
+              ? 'bg-[#c2410c] text-white shadow-xs'
+              : 'text-[#c2410c] hover:bg-[#fff7ed]'
+          }`}
+        >
+          APS-21 Override Modal
         </button>
         <button
           onClick={() => switchView('staff-search')}

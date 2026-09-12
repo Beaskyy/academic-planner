@@ -7,9 +7,10 @@ import { SessionManager } from './components/session-manager';
 import { CalendarDetail } from './components/calendar-detail';
 import { ImpactPreview } from './components/impact-preview';
 import { CompleteCalendarAuthoring } from './components/complete-calendar-authoring';
+import { CreateSuccessorVersion } from './components/create-successor-version';
 import { Sparkles } from 'lucide-react';
 
-export type CalendarViewState = 'sessions' | 'detail' | 'impact' | 'complete-authoring';
+export type CalendarViewState = 'sessions' | 'detail' | 'impact' | 'complete-authoring' | 'successor';
 
 export function CalendarView() {
   const searchParams = useSearchParams();
@@ -22,7 +23,7 @@ export function CalendarView() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (paramView && ['sessions', 'detail', 'impact', 'complete-authoring'].includes(paramView)) {
+    if (paramView && ['sessions', 'detail', 'impact', 'complete-authoring', 'successor'].includes(paramView)) {
       setCurrentView(paramView);
     }
   }, [paramView]);
@@ -83,10 +84,18 @@ export function CalendarView() {
             onBackToSessions={() => switchView('sessions')}
           />
         )}
+
+        {currentView === 'successor' && (
+          <CreateSuccessorVersion
+            onCancel={() => switchView('sessions')}
+            onCreateSuccessor={() => switchView('sessions')}
+            onOpenMobileMenu={() => setMobileMenuOpen(true)}
+          />
+        )}
       </main>
 
       {/* ── State Switcher Floating Dock (for review & QA) ─────────── */}
-      <div className="fixed bottom-4 right-4 z-40 bg-white/95 backdrop-blur-md border border-[#ebebeb] shadow-lg rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs select-none">
+      <div className="fixed bottom-4 right-4 z-40 bg-white/95 backdrop-blur-md border border-[#ebebeb] shadow-lg rounded-full px-3 py-1.5 flex items-center gap-1.5 text-xs select-none flex-wrap">
         <div className="flex items-center gap-1.5 text-[#808080] pr-2 border-r border-[#ebebeb] font-medium hidden sm:flex">
           <Sparkles className="w-3.5 h-3.5 text-[#046aff]" />
           <span>Figma Screen:</span>
@@ -120,6 +129,16 @@ export function CalendarView() {
           }`}
         >
           Complete Authoring
+        </button>
+        <button
+          onClick={() => switchView('successor')}
+          className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
+            currentView === 'successor'
+              ? 'bg-[#046aff] text-white shadow-xs'
+              : 'text-[#046aff] hover:bg-[#eff6ff]'
+          }`}
+        >
+          APS-25 Successor
         </button>
         <button
           onClick={() => switchView('impact')}
