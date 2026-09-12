@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Plus, ChevronRight, Menu, Calendar as CalendarIcon, Clock, Globe } from 'lucide-react';
 import { StatusTag } from '@/features/planning-home/components/status-tag';
+import { ClosePeriodModal } from '@/features/system-modals/close-period-modal';
 
 interface SessionManagerProps {
   onCreateSession: () => void;
@@ -16,6 +17,8 @@ export function SessionManager({
   onOpenMobileMenu,
 }: SessionManagerProps) {
   const [activeTab, setActiveTab] = useState<'sessions' | 'periods' | 'calendar'>('sessions');
+  const [isCloseModalOpen, setIsCloseModalOpen] = useState(false);
+
 
   return (
     <div className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 flex flex-col gap-6 max-w-[1440px] mx-auto w-full">
@@ -131,6 +134,17 @@ export function SessionManager({
                   16 Teaching Weeks
                 </span>
                 <StatusTag label="In Review" variant="in-review" />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsCloseModalOpen(true);
+                  }}
+                  className="px-2.5 py-1 text-xs font-semibold text-[#fb3748] bg-[#fff1f2] hover:bg-[#ffe4e6] rounded-[6px] border border-[#fecdd3] transition-colors cursor-pointer"
+                  title="Close Academic Period"
+                >
+                  Close Period
+                </button>
                 <ChevronRight className="w-4 h-4 text-[#808080] group-hover:text-[#046aff] transition-colors" />
               </div>
             </div>
@@ -157,6 +171,14 @@ export function SessionManager({
           </div>
         </div>
       </div>
+
+      <ClosePeriodModal
+        isOpen={isCloseModalOpen}
+        onClose={() => setIsCloseModalOpen(false)}
+        sessionName="2026/2027 Academic Session"
+        periodName="Semester 1"
+        dateRange="Oct 9, 2026 - Feb 15, 2027"
+      />
     </div>
   );
 }

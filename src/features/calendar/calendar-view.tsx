@@ -6,9 +6,10 @@ import { SharedSidebar } from '@/features/shared/sidebar';
 import { SessionManager } from './components/session-manager';
 import { CalendarDetail } from './components/calendar-detail';
 import { ImpactPreview } from './components/impact-preview';
+import { CompleteCalendarAuthoring } from './components/complete-calendar-authoring';
 import { Sparkles } from 'lucide-react';
 
-export type CalendarViewState = 'sessions' | 'detail' | 'impact';
+export type CalendarViewState = 'sessions' | 'detail' | 'impact' | 'complete-authoring';
 
 export function CalendarView() {
   const searchParams = useSearchParams();
@@ -21,10 +22,11 @@ export function CalendarView() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    if (paramView && ['sessions', 'detail', 'impact'].includes(paramView)) {
+    if (paramView && ['sessions', 'detail', 'impact', 'complete-authoring'].includes(paramView)) {
       setCurrentView(paramView);
     }
   }, [paramView]);
+
 
   const switchView = (view: CalendarViewState, period?: string) => {
     if (period) setSelectedPeriod(period);
@@ -75,6 +77,12 @@ export function CalendarView() {
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />
         )}
+
+        {currentView === 'complete-authoring' && (
+          <CompleteCalendarAuthoring
+            onBackToSessions={() => switchView('sessions')}
+          />
+        )}
       </main>
 
       {/* ── State Switcher Floating Dock (for review & QA) ─────────── */}
@@ -102,6 +110,16 @@ export function CalendarView() {
           }`}
         >
           Calendar Detail
+        </button>
+        <button
+          onClick={() => switchView('complete-authoring')}
+          className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
+            currentView === 'complete-authoring'
+              ? 'bg-[#046aff] text-white shadow-xs'
+              : 'text-[#5c5c5c] hover:text-[#1f1f1f] hover:bg-[#f5f5f5]'
+          }`}
+        >
+          Complete Authoring
         </button>
         <button
           onClick={() => switchView('impact')}

@@ -1,13 +1,17 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Search, Bell, HelpCircle, User, Menu, Sparkles } from 'lucide-react';
+import { SignOutModal } from '@/features/system-modals/sign-out-modal';
 
 interface TopBarProps {
   onOpenMobileMenu?: () => void;
 }
 
 export function TopBar({ onOpenMobileMenu }: TopBarProps) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSignOutOpen, setIsSignOutOpen] = useState(false);
+
   return (
     <header className="h-16 bg-white border-b border-[#ebebeb] px-4 sm:px-6 flex items-center justify-between gap-4 shrink-0 z-10">
       <div className="flex items-center gap-3">
@@ -63,16 +67,63 @@ export function TopBar({ onOpenMobileMenu }: TopBarProps) {
 
         <div className="h-6 w-px bg-gray-200" />
 
-        <div className="flex items-center gap-2.5 pl-1">
-          <div className="w-8 h-8 rounded-full bg-[#046aff] text-white flex items-center justify-center font-bold text-xs shadow-sm ring-2 ring-[#046aff]/20">
-            DA
-          </div>
-          <div className="hidden xl:block text-left">
-            <div className="text-xs font-bold text-gray-900 leading-none">Dean Alabi</div>
-            <div className="text-[10px] text-gray-500 mt-0.5 leading-none">Academic Planning Admin</div>
-          </div>
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="flex items-center gap-2.5 pl-1 p-1 rounded-lg hover:bg-gray-50 transition-colors cursor-pointer text-left"
+            aria-expanded={isMenuOpen}
+            aria-haspopup="true"
+          >
+            <div className="w-8 h-8 rounded-full bg-[#046aff] text-white flex items-center justify-center font-bold text-xs shadow-sm ring-2 ring-[#046aff]/20">
+              LH
+            </div>
+            <div className="hidden xl:block text-left">
+              <div className="text-xs font-bold text-gray-900 leading-none">Laura Hills</div>
+              <div className="text-[10px] text-gray-500 mt-0.5 leading-none">laura.hills@odeluniversity.edu.ng</div>
+            </div>
+          </button>
+
+          {isMenuOpen && (
+            <>
+              <div
+                className="fixed inset-0 z-20"
+                onClick={() => setIsMenuOpen(false)}
+              />
+              <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-[#ebebeb] py-2 z-30 animate-in fade-in zoom-in-95 duration-100">
+                <div className="px-4 py-2 border-b border-[#f0f0f0]">
+                  <div className="text-xs font-bold text-[#0b0b0b]">Laura Hills</div>
+                  <div className="text-[11px] text-[#808080] truncate">laura.hills@odeluniversity.edu.ng</div>
+                  <div className="mt-1 text-[10px] font-medium text-[#046aff] bg-[#f0f8ff] px-2 py-0.5 rounded inline-block">
+                    ODEL University – Lagos
+                  </div>
+                </div>
+
+                <div className="py-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      setIsSignOutOpen(true);
+                    }}
+                    className="w-full px-4 py-2 text-left text-xs font-medium text-[#fb3748] hover:bg-[#fff1f2] flex items-center gap-2 cursor-pointer transition-colors"
+                  >
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
+
+      <SignOutModal
+        isOpen={isSignOutOpen}
+        onClose={() => setIsSignOutOpen(false)}
+        userName="Laura Hills"
+        userEmail="laura.hills@odeluniversity.edu.ng"
+      />
     </header>
   );
 }
+
