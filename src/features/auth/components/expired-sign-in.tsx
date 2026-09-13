@@ -1,44 +1,45 @@
 'use client';
 
 import { useState, type FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
-import { Clock, Eye, EyeOff, Info } from 'lucide-react';
+import { Clock, Eye, EyeOff, Info, AlertCircle } from 'lucide-react';
 import { Button } from '@nqb8limited/odel-fe-design-system';
 import { CampusNavLogo } from './icons';
+import { useLogin } from '@/hooks/use-auth';
 
 /**
  * Expired-session sign-in — aps-sign-in-expired (Figma node 3074:2992).
  *
- * Layout (1440×900 canvas):
- *   - Same gradient background as error state.
- *   - Same nav bar.
- *   - White card 440×527 px centred horizontally, y≈186.5.
- *   - Card padding 32 px. Content width = 376 px.
- *   - Sections separated by 24 px gaps:
- *       Title (55) → Alert (64) → Fields (176) → InfoNote (32) → SignInBtn (40).
- *
- * Key differences from error state:
- *   - Heading: "Welcome back".
- *   - Alert: amber/orange warning with Clock icon.
- *   - Email field: pre-filled + read-only (pre-authenticated email remembered).
- *   - Password: empty input with "Enter password" placeholder + eye toggle.
- *   - "Forgot password?" below password input (not inline with label).
- *   - Info note below fields: ℹ previous location saved.
- *   - No "Need access?" / "Reset your password" rows.
+ * Integrated with NextAuth & React Query mutation hook (`useLogin`).
  */
 export function ExpiredSignIn() {
-  const router = useRouter();
+  const [email] = useState('laura.hills@campusos.edu');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const loginMutation = useLogin();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 800));
-    // In production: re-authenticate → redirect to saved location.
-    router.push('/');
+    setFormError(null);
+
+    if (!password) {
+      setFormError('Please enter your password to resume your session.');
+      return;
+    }
+
+    loginMutation.mutate(
+      { email, password },
+      {
+        onError: (err: any) => {
+          setFormError(err.message || 'Authentication failed. Please check your credentials.');
+        },
+      }
+    );
   };
+
+  const errorMessage = formError || loginMutation.error?.message;
+  const isLoading = loginMutation.isPending;
 
   return (
     <div
@@ -65,7 +66,7 @@ export function ExpiredSignIn() {
           }}
         >
           <div className="px-8 py-8">
-            {/* ── Title — height 55 px ──────────────────────────────── */}
+            {/* ── Title ──────────────────────────────── */}
             <div>
               <h1 className="text-[24px] font-bold text-[#0F172A] tracking-[-0.3px] leading-[1.21]">
                 Welcome back
@@ -75,16 +76,10 @@ export function ExpiredSignIn() {
               </p>
             </div>
 
-            {/* ── Warning alert — 24 px below title ────────────────── */}
-            {/* Figma: 376×64, clock icon x=12 y=22, text x=42 y=12 */}
+            {/* ── Warning alert ────────────────── */}
             <div
-              className="mt-6 flex items-start gap-2.5 px-3 py-3"
-              style={{
-                borderRadius: '8px',
-                border: '1px solid #FCD34D',
-                background: '#FFFBEB',
-                minHeight: '64px',
-              }}
+              className="mt-6 flex items-start gap-2.5 px-3 py-3 rounded-lg border border-[#FCD34D] bg-[#FFFBEB] min-h-[64px]"
+              role="alert"
             >
               <Clock
                 className="w-5 h-5 shrink-0 mt-0.5 text-[#B45309]"
@@ -96,7 +91,23 @@ export function ExpiredSignIn() {
               </p>
             </div>
 
-            {/* ── Fields section — 24 px below alert ───────────────── */}
+            {/* Error alert if any */}
+            {errorMessage && (
+              <div
+                className="mt-4 flex items-start gap-2.5 px-3 py-3 rounded-lg border border-[#F69999] bg-[#FEF0F0]"
+                role="alert"
+              >
+                <AlertCircle
+                  className="w-5 h-5 shrink-0 mt-0.5 text-[#DC2626]"
+                  aria-hidden="true"
+                />
+                <p className="text-[13px] text-[#DC2626] leading-[1.54]">
+                  {errorMessage}
+                </p>
+              </div>
+            )}
+
+            {/* ── Fields section ───────────────── */}
             <form onSubmit={handleSubmit} className="mt-6" noValidate>
               {/* FieldEmail — pre-filled read-only */}
               <div>
@@ -110,7 +121,7 @@ export function ExpiredSignIn() {
                   id="expired-email"
                   type="email"
                   autoComplete="email"
-                  value="laura.hills@odel.edu.ng"
+                  value={email}
                   readOnly
                   className="mt-1.5 w-full h-10 px-3 bg-[#F5F5F5] border border-[#EBEBEB] rounded-lg text-[14px] text-[#5C5C5C] cursor-default focus:outline-none select-none"
                   tabIndex={-1}
@@ -133,14 +144,18 @@ export function ExpiredSignIn() {
                     autoComplete="current-password"
                     placeholder="Enter password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (formError) setFormError(null);
+                    }}
+                    disabled={isLoading}
                     required
                     className="w-full h-10 px-3 pr-10 bg-white border border-[#E0E0E0] rounded-lg text-[14px] text-[#1F1F1F] placeholder:text-[#B0B0B0] focus:outline-none focus:border-[#046aff] focus:ring-2 focus:ring-[#046aff]/10 transition-colors duration-150"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#808080] hover:text-[#5C5C5C] transition-colors focus:outline-none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#808080] hover:text-[#5C5C5C] transition-colors focus:outline-none cursor-pointer"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                   >
                     {showPassword ? (
@@ -151,7 +166,6 @@ export function ExpiredSignIn() {
                   </button>
                 </div>
 
-                {/* "Forgot password?" — 8 px below input, right-aligned */}
                 <div className="mt-2 flex justify-end">
                   <a
                     href="#"
@@ -162,8 +176,7 @@ export function ExpiredSignIn() {
                 </div>
               </div>
 
-              {/* ── Info note — 24 px below fields bottom ────────────── */}
-              {/* Figma: info icon 16×16 at x=0 y=0, text x=24 y=0, height=32 (2 lines) */}
+              {/* ── Info note ────────────── */}
               <div className="mt-6 flex items-start gap-2 text-[13px] text-[#808080] leading-[1.54]">
                 <Info
                   className="w-4 h-4 shrink-0 mt-0.5 text-[#808080]"
@@ -175,15 +188,15 @@ export function ExpiredSignIn() {
                 </span>
               </div>
 
-              {/* ── Sign In button — 24 px below info note ─────────── */}
+              {/* ── Sign In button ─────────── */}
               <div className="mt-6">
                 <Button
                   type="submit"
                   variant="default"
-                  disabled={loading}
-                  className="w-full h-10 text-[14px] font-medium"
+                  disabled={isLoading}
+                  className="w-full h-10 text-[14px] font-medium cursor-pointer"
                 >
-                  {loading ? 'Signing in…' : 'Sign In'}
+                  {isLoading ? 'Signing in…' : 'Sign In'}
                 </Button>
               </div>
             </form>

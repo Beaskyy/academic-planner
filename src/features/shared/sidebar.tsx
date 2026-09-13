@@ -20,7 +20,10 @@ import {
   CloudUpload,
   Shield,
   X,
+  LogOut,
+  User,
 } from 'lucide-react';
+import { useAuthSession } from '@/hooks/use-auth';
 
 interface SharedSidebarProps {
   mobileOpen?: boolean;
@@ -50,6 +53,10 @@ export function SharedSidebar({
   activeItem,
 }: SharedSidebarProps) {
   const pathname = usePathname();
+  const { user, activeRole, availableWorkspaces, logout } = useAuthSession();
+
+  const roleName = activeRole?.name || user?.name || 'Academic Planning Admin';
+  const workspaceName = availableWorkspaces?.[0]?.name || 'Academic Planning';
 
   const isItemActive = (item: (typeof navItems)[number]) => {
     if (activeItem) {
@@ -62,113 +69,140 @@ export function SharedSidebar({
   };
 
   const sidebarContent = (
-    <div className="flex flex-col gap-6 p-4 w-[280px] h-full overflow-y-auto select-none">
-      {/* Mobile close button header */}
-      <div className="flex items-center justify-between lg:hidden pb-2 border-b border-[#f5f5f5]">
-        <span className="font-semibold text-sm text-[#1f1f1f]">Navigation Menu</span>
+    <div className="flex flex-col gap-6 p-4 w-[280px] h-full overflow-y-auto select-none justify-between">
+      <div className="flex flex-col gap-6">
+        {/* Mobile close button header */}
+        <div className="flex items-center justify-between lg:hidden pb-2 border-b border-[#f5f5f5]">
+          <span className="font-semibold text-sm text-[#1f1f1f]">Navigation Menu</span>
+          <button
+            onClick={onCloseMobile}
+            className="p-1 rounded-md text-[#808080] hover:text-[#1f1f1f] hover:bg-[#f5f5f5] transition-colors cursor-pointer"
+            aria-label="Close navigation"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Resolved Context Card */}
+        <div className="bg-[#fafafa] border border-[#f0f0f0] rounded-[16px] p-4 flex flex-col gap-3 shrink-0">
+          {/* Row 1: School */}
+          <div className="flex items-center gap-2.5 w-full">
+            <div className="w-4 h-4 flex items-center justify-center shrink-0 text-[#046aff]">
+              <GraduationCap className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col gap-[2px] min-w-0 flex-1">
+              <span className="text-[11px] font-medium text-[#808080] uppercase tracking-wide">
+                School
+              </span>
+              <span className="text-[13px] font-semibold text-[#1f1f1f] truncate">
+                ODEL University – Lagos
+              </span>
+            </div>
+          </div>
+
+          {/* Row 2: Workspace */}
+          <div className="flex items-center gap-2.5 w-full">
+            <div className="w-4 h-4 flex items-center justify-center shrink-0 text-[#046aff]">
+              <Briefcase className="w-4 h-4" />
+            </div>
+            <div className="flex flex-col gap-[2px] min-w-0 flex-1">
+              <span className="text-[11px] font-medium text-[#808080] uppercase tracking-wide">
+                Workspace
+              </span>
+              <span className="text-[13px] font-semibold text-[#1f1f1f] truncate">
+                {workspaceName}
+              </span>
+            </div>
+          </div>
+
+          {!minimalContext && (
+            <>
+              {/* Row 3: Role */}
+              <div className="flex items-center gap-2.5 w-full">
+                <div className="w-4 h-4 flex items-center justify-center shrink-0 text-[#046aff]">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col gap-[2px] min-w-0 flex-1">
+                  <span className="text-[11px] font-medium text-[#808080] uppercase tracking-wide">
+                    Role
+                  </span>
+                  <span className="text-[13px] font-semibold text-[#1f1f1f] truncate">
+                    {roleName}
+                  </span>
+                </div>
+              </div>
+
+              {/* Row 4: Timezone */}
+              <div className="flex items-center gap-2.5 w-full">
+                <div className="w-4 h-4 flex items-center justify-center shrink-0 text-[#046aff]">
+                  <Globe className="w-4 h-4" />
+                </div>
+                <div className="flex flex-col gap-[2px] min-w-0 flex-1">
+                  <span className="text-[11px] font-medium text-[#808080] uppercase tracking-wide">
+                    Timezone
+                  </span>
+                  <span className="text-[13px] font-semibold text-[#1f1f1f] truncate">
+                    Africa/Lagos
+                  </span>
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Navigation Links */}
+        <nav className="flex flex-col gap-1 w-full" aria-label="Main Navigation">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            const active = isItemActive(item);
+
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                onClick={onCloseMobile}
+                className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] transition-colors ${
+                  active
+                    ? 'bg-[#f0f8ff] text-[#046aff] font-semibold'
+                    : 'text-[#1f1f1f] font-medium hover:bg-[#f5f5f5]'
+                }`}
+              >
+                <Icon
+                  className={`w-[18px] h-[18px] shrink-0 ${
+                    active ? 'text-[#046aff]' : 'text-[#5c5c5c]'
+                  }`}
+                />
+                <span className="truncate">{item.label}</span>
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+
+      {/* User profile & Logout footer */}
+      <div className="pt-4 border-t border-[#f0f0f0] flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
+          <div className="w-8 h-8 rounded-full bg-[#e0f2fe] text-[#0369a1] flex items-center justify-center shrink-0 font-bold text-xs">
+            {user?.name ? user.name[0].toUpperCase() : <User className="w-4 h-4" />}
+          </div>
+          <div className="flex flex-col min-w-0 flex-1">
+            <span className="text-[13px] font-semibold text-[#1f1f1f] truncate">
+              {user?.name || user?.email?.split('@')[0] || 'Authenticated User'}
+            </span>
+            <span className="text-[11px] text-[#808080] truncate">
+              {user?.email || 'Logged in'}
+            </span>
+          </div>
+        </div>
         <button
-          onClick={onCloseMobile}
-          className="p-1 rounded-md text-[#808080] hover:text-[#1f1f1f] hover:bg-[#f5f5f5] transition-colors"
-          aria-label="Close navigation"
+          onClick={() => logout()}
+          className="p-1.5 rounded-lg text-[#808080] hover:text-[#ef4444] hover:bg-[#fef2f2] transition-colors cursor-pointer shrink-0"
+          title="Sign out"
+          aria-label="Sign out"
         >
-          <X className="w-5 h-5" />
+          <LogOut className="w-4 h-4" />
         </button>
       </div>
-
-      {/* Resolved Context Card */}
-      <div className="bg-[#fafafa] border border-[#f0f0f0] rounded-[16px] p-4 flex flex-col gap-3 shrink-0">
-        {/* Row 1: School */}
-        <div className="flex items-center gap-2.5 w-full">
-          <div className="w-4 h-4 flex items-center justify-center shrink-0 text-[#046aff]">
-            <GraduationCap className="w-4 h-4" />
-          </div>
-          <div className="flex flex-col gap-[2px] min-w-0 flex-1">
-            <span className="text-[11px] font-medium text-[#808080] uppercase tracking-wide">
-              School
-            </span>
-            <span className="text-[13px] font-semibold text-[#1f1f1f] truncate">
-              ODEL University – Lagos
-            </span>
-          </div>
-        </div>
-
-        {/* Row 2: Workspace */}
-        <div className="flex items-center gap-2.5 w-full">
-          <div className="w-4 h-4 flex items-center justify-center shrink-0 text-[#046aff]">
-            <Briefcase className="w-4 h-4" />
-          </div>
-          <div className="flex flex-col gap-[2px] min-w-0 flex-1">
-            <span className="text-[11px] font-medium text-[#808080] uppercase tracking-wide">
-              Workspace
-            </span>
-            <span className="text-[13px] font-semibold text-[#1f1f1f] truncate">
-              Academic Planning
-            </span>
-          </div>
-        </div>
-
-        {!minimalContext && (
-          <>
-            {/* Row 3: Role */}
-            <div className="flex items-center gap-2.5 w-full">
-              <div className="w-4 h-4 flex items-center justify-center shrink-0 text-[#046aff]">
-                <ShieldCheck className="w-4 h-4" />
-              </div>
-              <div className="flex flex-col gap-[2px] min-w-0 flex-1">
-                <span className="text-[11px] font-medium text-[#808080] uppercase tracking-wide">
-                  Role
-                </span>
-                <span className="text-[13px] font-semibold text-[#1f1f1f] truncate">
-                  Academic Planning Admin
-                </span>
-              </div>
-            </div>
-
-            {/* Row 4: Timezone */}
-            <div className="flex items-center gap-2.5 w-full">
-              <div className="w-4 h-4 flex items-center justify-center shrink-0 text-[#046aff]">
-                <Globe className="w-4 h-4" />
-              </div>
-              <div className="flex flex-col gap-[2px] min-w-0 flex-1">
-                <span className="text-[11px] font-medium text-[#808080] uppercase tracking-wide">
-                  Timezone
-                </span>
-                <span className="text-[13px] font-semibold text-[#1f1f1f] truncate">
-                  Africa/Lagos
-                </span>
-              </div>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* Navigation Links */}
-      <nav className="flex flex-col gap-1 w-full" aria-label="Main Navigation">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          const active = isItemActive(item);
-
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              onClick={onCloseMobile}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-[10px] text-[13px] transition-colors ${
-                active
-                  ? 'bg-[#f0f8ff] text-[#046aff] font-semibold'
-                  : 'text-[#1f1f1f] font-medium hover:bg-[#f5f5f5]'
-              }`}
-            >
-              <Icon
-                className={`w-[18px] h-[18px] shrink-0 ${
-                  active ? 'text-[#046aff]' : 'text-[#5c5c5c]'
-                }`}
-              />
-              <span className="truncate">{item.label}</span>
-            </Link>
-          );
-        })}
-      </nav>
     </div>
   );
 
