@@ -18,6 +18,7 @@ export function CoursesView() {
 
   const [currentView, setCurrentView] = useState<CoursesViewState>('catalogue');
   const [selectedCode, setSelectedCode] = useState(paramCode);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | undefined>(undefined);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -26,8 +27,10 @@ export function CoursesView() {
     }
   }, [paramView]);
 
-  const switchView = (view: CoursesViewState, code?: string) => {
+  const switchView = (view: CoursesViewState, code?: string, id?: string) => {
     if (code) setSelectedCode(code);
+    if (id !== undefined) setSelectedCourseId(id);
+    if (view === 'catalogue') setSelectedCourseId(undefined);
     setCurrentView(view);
     const newParams = new URLSearchParams(searchParams.toString());
     if (view === 'catalogue') {
@@ -53,14 +56,15 @@ export function CoursesView() {
       <main className="flex-1 min-w-0 flex flex-col">
         {currentView === 'catalogue' && (
           <CourseCatalogue
-            onAddCourse={() => switchView('edit', 'NEW 101')}
-            onEditCourse={(code) => switchView('edit', code)}
+            onAddCourse={() => switchView('edit', 'NEW 101', undefined)}
+            onEditCourse={(code, id) => switchView('edit', code, id)}
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />
         )}
 
         {currentView === 'edit' && (
           <CourseEditor
+            courseId={selectedCourseId}
             courseCode={selectedCode}
             onCancel={() => switchView('catalogue')}
             onSaveDraft={() => switchView('catalogue')}
