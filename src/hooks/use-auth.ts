@@ -1,10 +1,11 @@
 'use client';
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { signIn, signOut, useSession } from 'next-auth/react';
+import { signIn, signOut, useSession, getSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LoginRequest, RefreshRequest } from '@/types/auth';
+import { LoginRequest, RefreshRequest, Workspace } from '@/types/auth';
 import { authService, AuthApiError } from '@/services/auth-service';
+import { getRoleDashboardRoute } from '@/lib/role-router';
 
 export const AUTH_QUERY_KEY = ['auth', 'session'] as const;
 
@@ -15,7 +16,7 @@ export function useLogin() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
-  const callbackUrl = searchParams.get('callbackUrl') || '/';
+  const callbackUrl = searchParams.get('callbackUrl');
 
   return useMutation({
     mutationFn: async (credentials: LoginRequest) => {
@@ -38,8 +39,20 @@ export function useLogin() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: AUTH_QUERY_KEY });
-      router.push(callbackUrl);
-      router.refresh();
+      const session = await getSession();
+      const workspaces = (session?.availableWorkspaces as any[]) ?? [];
+
+      let target = callbackUrl && callbackUrl !== '/' && callbackUrl !== '/login' ? callbackUrl : null;
+      if (!target) {
+        if (workspaces.length > 1) {
+          target = '/workspace-selector';
+        } else {
+          const roleName = (session?.activeRole as any)?.name ?? '';
+          target = getRoleDashboardRoute(roleName);
+        }
+      }
+
+      window.location.href = target;
     },
   });
 }
@@ -106,4 +119,28 @@ export function useAuthSession() {
     tokenExpired: session?.error === 'RefreshAccessTokenError',
     logout,
   };
+}
+
+/**
+ * Hook for selecting a workspace from the workspace picker.
+ * Updates the NextAuth session's activeRole and routes to the correct dashboard.
+ */
+export function useSelectWorkspace() {
+  const { update } = useSession();
+  const router = useRouter();
+
+  return useMutation({
+    mutationFn: async (workspace: Workspace) => {
+      // Update the session's activeRole to the selected workspace
+      // The workspace name is used as the role indicator for routing
+      await update({
+        activeRole: { id: workspace.id, name: workspace.name },
+      });
+      return workspace;
+    },
+    onSuccess: (workspace) => {
+      const route = getRoleDashboardRoute(workspace.name);
+      window.location.href = route;
+    },
+  });
 }
