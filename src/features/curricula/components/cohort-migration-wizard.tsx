@@ -15,6 +15,7 @@ import {
   Save,
   Menu,
 } from 'lucide-react';
+import { useCreateCurriculumMigration } from '@/hooks/use-curriculum-migrations';
 
 interface CohortMigrationWizardProps {
   onCancel: () => void;
@@ -33,6 +34,15 @@ export function CohortMigrationWizard({
     'Updating core degree requirements in alignment with 2026 CS Curriculum syllabus revision.'
   );
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [sourceCurriculumId, setSourceCurriculumId] = useState('');
+  const [targetCurriculumId, setTargetCurriculumId] = useState('');
+  const [affectedStudentScope, setAffectedStudentScope] = useState('{"cohort":"y3"}');
+  const [courseEquivalenceMapping, setCourseEquivalenceMapping] = useState('{}');
+  const [creditTreatment, setCreditTreatment] = useState('{}');
+  const [unmetRequirementHandling, setUnmetRequirementHandling] = useState('{}');
+  const [effectiveAt, setEffectiveAt] = useState('2026-09-01T00:00:00Z');
+  const [migrationError, setMigrationError] = useState<string | null>(null);
+  const createMigration = useCreateCurriculumMigration();
 
   const toggleCohort = (id: string) => {
     if (selectedCohorts.includes(id)) {
@@ -46,11 +56,50 @@ export function CohortMigrationWizard({
     setSelectedCohorts(['y3']);
   };
 
+  const parseObject = (value: string, label: string): Record<string, unknown> | null => {
+    try {
+      const parsed: unknown = JSON.parse(value);
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        setMigrationError(`${label} must be a JSON object.`);
+        return null;
+      }
+      return parsed as Record<string, unknown>;
+    } catch {
+      setMigrationError(`${label} must contain valid JSON.`);
+      return null;
+    }
+  };
+
   const handleSubmit = () => {
-    setIsSubmitted(true);
-    setTimeout(() => {
-      onFinish();
-    }, 1500);
+    setMigrationError(null);
+    if (!sourceCurriculumId.trim() || !targetCurriculumId.trim()) {
+      setMigrationError('Source and target curriculum UUIDs are required.');
+      return;
+    }
+
+    const affectedScope = parseObject(affectedStudentScope, 'Affected student scope');
+    const equivalence = parseObject(courseEquivalenceMapping, 'Course equivalence mapping');
+    const credits = parseObject(creditTreatment, 'Credit treatment');
+    const unmet = parseObject(unmetRequirementHandling, 'Unmet requirement handling');
+    if (!affectedScope || !equivalence || !credits || !unmet) return;
+
+    createMigration.mutate(
+      {
+        source_curriculum_id: sourceCurriculumId.trim(),
+        target_curriculum_id: targetCurriculumId.trim(),
+        affected_student_scope: affectedScope,
+        course_equivalence_mapping: equivalence,
+        credit_treatment: credits,
+        unmet_requirement_handling: unmet,
+        effective_at: effectiveAt.trim() || null,
+      },
+      {
+        onSuccess: () => {
+          setIsSubmitted(true);
+          setTimeout(() => onFinish(), 1500);
+        },
+      },
+    );
   };
 
   const steps = [
@@ -67,6 +116,14 @@ export function CohortMigrationWizard({
         <div className="fixed top-4 right-4 z-50 bg-[#166534] text-white px-5 py-3 rounded-xl shadow-lg flex items-center gap-2.5 text-sm font-semibold animate-in fade-in slide-in-from-top-2">
           <CheckCircle2 className="w-5 h-5" />
           <span>Migration case submitted for review successfully!</span>
+        </div>
+      )}
+      {(migrationError || createMigration.isError) && (
+        <div className="fixed top-4 right-4 z-50 mt-14 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg" role="alert">
+          {migrationError || createMigration.error?.message}
+          {createMigration.error?.rawErrors?.map((error, index) => (
+            <div key={`${error.type}-${index}`}>{error.msg}</div>
+          ))}
         </div>
       )}
 
