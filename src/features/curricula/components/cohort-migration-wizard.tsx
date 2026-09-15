@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   ChevronRight,
   ArrowRight,
@@ -14,8 +14,16 @@ import {
   Send,
   Save,
   Menu,
-} from 'lucide-react';
-import { useCreateCurriculumMigration } from '@/hooks/use-curriculum-migrations';
+} from "lucide-react";
+import {
+  useCreateCurriculumMigration,
+  useListCurriculumMigrations,
+  useSubmitCurriculumMigration,
+  useApproveCurriculumMigration,
+  useRejectCurriculumMigration,
+  usePreviewCurriculumMigration,
+  useCurriculumMigration,
+} from "@/hooks/use-curriculum-migrations";
 
 interface CohortMigrationWizardProps {
   onCancel: () => void;
@@ -29,20 +37,31 @@ export function CohortMigrationWizard({
   onOpenMobileMenu,
 }: CohortMigrationWizardProps) {
   const [currentStep, setCurrentStep] = useState<1 | 2 | 3 | 4>(1);
-  const [selectedCohorts, setSelectedCohorts] = useState<string[]>(['y3']);
+  const [selectedCohorts, setSelectedCohorts] = useState<string[]>(["y3"]);
   const [justification, setJustification] = useState(
-    'Updating core degree requirements in alignment with 2026 CS Curriculum syllabus revision.'
+    "Updating core degree requirements in alignment with 2026 CS Curriculum syllabus revision.",
   );
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [sourceCurriculumId, setSourceCurriculumId] = useState('');
-  const [targetCurriculumId, setTargetCurriculumId] = useState('');
-  const [affectedStudentScope, setAffectedStudentScope] = useState('{"cohort":"y3"}');
-  const [courseEquivalenceMapping, setCourseEquivalenceMapping] = useState('{}');
-  const [creditTreatment, setCreditTreatment] = useState('{}');
-  const [unmetRequirementHandling, setUnmetRequirementHandling] = useState('{}');
-  const [effectiveAt, setEffectiveAt] = useState('2026-09-01T00:00:00Z');
+  const [sourceCurriculumId, setSourceCurriculumId] = useState("");
+  const [targetCurriculumId, setTargetCurriculumId] = useState("");
+  const [affectedStudentScope, setAffectedStudentScope] =
+    useState('{"cohort":"y3"}');
+  const [courseEquivalenceMapping, setCourseEquivalenceMapping] =
+    useState("{}");
+  const [creditTreatment, setCreditTreatment] = useState("{}");
+  const [unmetRequirementHandling, setUnmetRequirementHandling] =
+    useState("{}");
+  const [effectiveAt, setEffectiveAt] = useState("2026-09-01T00:00:00Z");
   const [migrationError, setMigrationError] = useState<string | null>(null);
+  const [previewMigrationId, setPreviewMigrationId] = useState<string | undefined>();
+  const [detailMigrationId, setDetailMigrationId] = useState<string | undefined>();
   const createMigration = useCreateCurriculumMigration();
+  const submitMigration = useSubmitCurriculumMigration();
+  const approveMigration = useApproveCurriculumMigration();
+  const rejectMigration = useRejectCurriculumMigration();
+  const previewMigration = usePreviewCurriculumMigration(previewMigrationId);
+  const migrationDetail = useCurriculumMigration(detailMigrationId);
+  const migrationsQuery = useListCurriculumMigrations({ limit: 200, offset: 0 });
 
   const toggleCohort = (id: string) => {
     if (selectedCohorts.includes(id)) {
@@ -53,13 +72,26 @@ export function CohortMigrationWizard({
   };
 
   const handleSelectAllEligible = () => {
-    setSelectedCohorts(['y3']);
+    setSelectedCohorts(["y3"]);
   };
 
-  const parseObject = (value: string, label: string): Record<string, unknown> | null => {
+  const goToStep = (step: number) => {
+    if (step === 1 || step === 2 || step === 3 || step === 4) {
+      setCurrentStep(step);
+    }
+  };
+
+  const parseObject = (
+    value: string,
+    label: string,
+  ): Record<string, unknown> | null => {
     try {
       const parsed: unknown = JSON.parse(value);
-      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      if (
+        typeof parsed !== "object" ||
+        parsed === null ||
+        Array.isArray(parsed)
+      ) {
         setMigrationError(`${label} must be a JSON object.`);
         return null;
       }
@@ -73,14 +105,23 @@ export function CohortMigrationWizard({
   const handleSubmit = () => {
     setMigrationError(null);
     if (!sourceCurriculumId.trim() || !targetCurriculumId.trim()) {
-      setMigrationError('Source and target curriculum UUIDs are required.');
+      setMigrationError("Source and target curriculum UUIDs are required.");
       return;
     }
 
-    const affectedScope = parseObject(affectedStudentScope, 'Affected student scope');
-    const equivalence = parseObject(courseEquivalenceMapping, 'Course equivalence mapping');
-    const credits = parseObject(creditTreatment, 'Credit treatment');
-    const unmet = parseObject(unmetRequirementHandling, 'Unmet requirement handling');
+    const affectedScope = parseObject(
+      affectedStudentScope,
+      "Affected student scope",
+    );
+    const equivalence = parseObject(
+      courseEquivalenceMapping,
+      "Course equivalence mapping",
+    );
+    const credits = parseObject(creditTreatment, "Credit treatment");
+    const unmet = parseObject(
+      unmetRequirementHandling,
+      "Unmet requirement handling",
+    );
     if (!affectedScope || !equivalence || !credits || !unmet) return;
 
     createMigration.mutate(
@@ -103,10 +144,10 @@ export function CohortMigrationWizard({
   };
 
   const steps = [
-    { num: 1, label: 'Select Cohorts' },
-    { num: 2, label: 'Map Changes' },
-    { num: 3, label: 'Review Impact' },
-    { num: 4, label: 'Submit' },
+    { num: 1, label: "Select Cohorts" },
+    { num: 2, label: "Map Changes" },
+    { num: 3, label: "Review Impact" },
+    { num: 4, label: "Submit" },
   ];
 
   return (
@@ -119,10 +160,45 @@ export function CohortMigrationWizard({
         </div>
       )}
       {(migrationError || createMigration.isError) && (
-        <div className="fixed top-4 right-4 z-50 mt-14 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg" role="alert">
+        <div
+          className="fixed top-4 right-4 z-50 mt-14 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg"
+          role="alert"
+        >
           {migrationError || createMigration.error?.message}
           {createMigration.error?.rawErrors?.map((error, index) => (
             <div key={`${error.type}-${index}`}>{error.msg}</div>
+          ))}
+        </div>
+      )}
+      {submitMigration.isError && (
+        <div className="fixed top-4 right-4 z-50 mt-28 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg" role="alert">
+          {submitMigration.error.message}
+          {submitMigration.error.rawErrors?.map((error, index) => (
+            <div key={`submit-${error.type}-${index}`}>{error.msg}</div>
+          ))}
+        </div>
+      )}
+      {approveMigration.isError && (
+        <div className="fixed top-4 right-4 z-50 mt-40 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg" role="alert">
+          {approveMigration.error.message}
+          {approveMigration.error.rawErrors?.map((error, index) => (
+            <div key={`approve-${error.type}-${index}`}>{error.msg}</div>
+          ))}
+        </div>
+      )}
+      {rejectMigration.isError && (
+        <div className="fixed top-4 right-4 z-50 mt-52 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg" role="alert">
+          {rejectMigration.error.message}
+          {rejectMigration.error.rawErrors?.map((error, index) => (
+            <div key={`reject-${error.type}-${index}`}>{error.msg}</div>
+          ))}
+        </div>
+      )}
+      {previewMigration.isError && (
+        <div className="fixed top-4 right-4 z-50 mt-64 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg" role="alert">
+          {previewMigration.error.message}
+          {previewMigration.error.rawErrors?.map((error, index) => (
+            <div key={`preview-${error.type}-${index}`}>{error.msg}</div>
           ))}
         </div>
       )}
@@ -146,10 +222,10 @@ export function CohortMigrationWizard({
           </div>
           <h1 className="text-2xl font-bold text-[#1f1f1f] tracking-tight">
             {currentStep === 3
-              ? 'Review Impact Summary'
+              ? "Review Impact Summary"
               : currentStep === 4
-              ? 'Cohort Curriculum Migration'
-              : 'New Migration Case'}
+                ? "Cohort Curriculum Migration"
+                : "New Migration Case"}
           </h1>
         </div>
 
@@ -158,17 +234,19 @@ export function CohortMigrationWizard({
           {steps.map((s, idx) => (
             <React.Fragment key={s.num}>
               <div
-                onClick={() => s.num < currentStep && setCurrentStep(s.num as any)}
+                onClick={() =>
+                  s.num < currentStep && goToStep(s.num)
+                }
                 className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-all ${
                   currentStep === s.num
-                    ? 'bg-[#046aff] text-white'
+                    ? "bg-[#046aff] text-white"
                     : currentStep > s.num
-                    ? 'bg-[#eef4ff] text-[#046aff] cursor-pointer hover:bg-[#dbeafe]'
-                    : 'text-[#808080] bg-[#f5f5f5]'
+                      ? "bg-[#eef4ff] text-[#046aff] cursor-pointer hover:bg-[#dbeafe]"
+                      : "text-[#808080] bg-[#f5f5f5]"
                 }`}
               >
                 <span className="w-4 h-4 rounded-full flex items-center justify-center text-[10px]">
-                  {currentStep > s.num ? '✓' : s.num}
+                  {currentStep > s.num ? "✓" : s.num}
                 </span>
                 <span>{s.label}</span>
               </div>
@@ -187,6 +265,121 @@ export function CohortMigrationWizard({
         {/* ========================================================================= */}
         {currentStep === 1 && (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            <div className="lg:col-span-12 bg-white border border-[#ebebeb] rounded-[16px] p-6 shadow-xs flex flex-col gap-4">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-[16px] font-bold text-[#1f1f1f]">Migration Cases</h3>
+                  <p className="text-[12px] text-[#808080] mt-1">
+                    {migrationsQuery.data
+                      ? `${migrationsQuery.data.data.total} case${migrationsQuery.data.data.total === 1 ? "" : "s"} loaded`
+                      : "Loading migration cases..."}
+                  </p>
+                </div>
+                {migrationsQuery.isFetching && <span className="text-[11px] text-[#808080]">Refreshing...</span>}
+              </div>
+
+              {migrationsQuery.isError && (
+                <div role="alert" className="rounded-[8px] border border-[#F69999] bg-[#FEF0F0] px-3 py-2 text-[12px] text-[#B91C1C]">
+                  {migrationsQuery.error.message}
+                  {migrationsQuery.error.rawErrors?.map((error, index) => (
+                    <div key={`${error.type}-${index}`}>{error.msg}</div>
+                  ))}
+                </div>
+              )}
+
+              {!migrationsQuery.isLoading && !migrationsQuery.isError && migrationsQuery.data?.data.items.length === 0 && (
+                <p className="text-[12px] text-[#808080]">No migration cases found.</p>
+              )}
+
+              {migrationsQuery.data && migrationsQuery.data.data.items.length > 0 && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {migrationsQuery.data.data.items.map((migration) => (
+                    <div key={migration.id} className="rounded-[8px] border border-[#e5e5e5] bg-[#fafafa] px-3 py-2 text-[12px]">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-semibold text-[#1f1f1f]">{migration.status}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[#808080]">Row version {migration.row_version}</span>
+                              <button
+                                type="button"
+                                onClick={() => setPreviewMigrationId(migration.id)}
+                                className="rounded-[6px] border border-[#d2e4ff] bg-white px-2 py-1 text-[11px] font-semibold text-[#046aff] hover:bg-[#f0f8ff]"
+                              >
+                                Preview
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setDetailMigrationId(migration.id)}
+                                className="rounded-[6px] border border-[#e5e5e5] bg-white px-2 py-1 text-[11px] font-semibold text-[#5c5c5c] hover:bg-[#f5f5f5]"
+                              >
+                                Details
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => submitMigration.mutate({
+                                  migrationId: migration.id,
+                                  payload: { row_version: migration.row_version, reason: justification.trim() || null },
+                                })}
+                                disabled={submitMigration.isPending}
+                                className="rounded-[6px] bg-[#046aff] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[#0356d6] disabled:opacity-50"
+                              >
+                                {submitMigration.isPending ? "Submitting..." : "Submit"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => rejectMigration.mutate({
+                                  migrationId: migration.id,
+                                  payload: { row_version: migration.row_version, reason: justification.trim() || null },
+                                })}
+                                disabled={rejectMigration.isPending}
+                                className="rounded-[6px] border border-[#fecaca] bg-white px-2 py-1 text-[11px] font-semibold text-[#b91c1c] hover:bg-[#fef2f2] disabled:opacity-50"
+                              >
+                                {rejectMigration.isPending ? "Rejecting..." : "Reject"}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => approveMigration.mutate({
+                                  migrationId: migration.id,
+                                  payload: { row_version: migration.row_version, reason: justification.trim() || null },
+                                })}
+                                disabled={approveMigration.isPending}
+                                className="rounded-[6px] bg-[#166534] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[#14532d] disabled:opacity-50"
+                              >
+                                {approveMigration.isPending ? "Approving..." : "Approve"}
+                              </button>
+                            </div>
+                      </div>
+                      <div className="mt-1 text-[#5c5c5c] break-all">Source: {migration.source_curriculum_id}</div>
+                      <div className="text-[#5c5c5c] break-all">Target: {migration.target_curriculum_id}</div>
+                      {migration.effective_at && <div className="text-[#808080] mt-1">Effective: {migration.effective_at}</div>}
+                      {previewMigrationId === migration.id && previewMigration.isFetching && (
+                        <div className="mt-2 text-[#808080]">Loading preview...</div>
+                      )}
+                      {previewMigrationId === migration.id && previewMigration.data && (
+                        <div className="mt-2 rounded-[6px] border border-[#d2e4ff] bg-[#f0f8ff] p-2 text-[#334155]">
+                          <div className="font-semibold">Affected student scope</div>
+                          <pre className="mt-1 max-h-24 overflow-auto whitespace-pre-wrap font-mono text-[11px]">
+                            {JSON.stringify(previewMigration.data.data.affected_student_scope, null, 2)}
+                          </pre>
+                          <div className="mt-1 text-[#5c5c5c]">{previewMigration.data.data.note}</div>
+                        </div>
+                      )}
+                      {detailMigrationId === migration.id && migrationDetail.isFetching && (
+                        <div className="mt-2 text-[#808080]">Loading details...</div>
+                      )}
+                      {detailMigrationId === migration.id && migrationDetail.data && (
+                        <div className="mt-2 rounded-[6px] border border-[#e5e5e5] bg-white p-2 text-[#334155]">
+                          <div className="font-semibold">Migration details</div>
+                          <div className="mt-1">Status: {migrationDetail.data.data.status}</div>
+                          <div>Reason: {migrationDetail.data.data.reason || "None"}</div>
+                          <div>Row version: {migrationDetail.data.data.row_version}</div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Left Content Column */}
             <div className="lg:col-span-8 flex flex-col gap-6">
               {/* Curriculum Setup Row */}
@@ -220,6 +413,27 @@ export function CohortMigrationWizard({
                 </div>
               </div>
 
+              <div className="bg-white border border-[#ebebeb] rounded-[16px] p-5 shadow-xs grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label className="flex flex-col gap-1 text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
+                  Source Curriculum ID (UUID)
+                  <input
+                    value={sourceCurriculumId}
+                    onChange={(event) => setSourceCurriculumId(event.target.value)}
+                    placeholder="Source curriculum UUID"
+                    className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 text-[13px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-1 text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
+                  Target Curriculum ID (UUID)
+                  <input
+                    value={targetCurriculumId}
+                    onChange={(event) => setTargetCurriculumId(event.target.value)}
+                    placeholder="Target curriculum UUID"
+                    className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 text-[13px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                  />
+                </label>
+              </div>
+
               {/* Cohort Selection Card */}
               <div className="bg-white border border-[#ebebeb] rounded-[16px] p-6 shadow-xs flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#f5f5f5]">
@@ -228,7 +442,8 @@ export function CohortMigrationWizard({
                       Cohort Selection
                     </h3>
                     <p className="text-[12px] text-[#808080]">
-                      Identify the student cohorts to schedule for mapping migration
+                      Identify the student cohorts to schedule for mapping
+                      migration
                     </p>
                   </div>
                   <button
@@ -252,13 +467,13 @@ export function CohortMigrationWizard({
                     </thead>
                     <tbody className="divide-y divide-[#f5f5f5] text-[13px]">
                       <tr
-                        onClick={() => toggleCohort('y3')}
+                        onClick={() => toggleCohort("y3")}
                         className="hover:bg-[#fafafa] transition-colors cursor-pointer"
                       >
                         <td className="py-3 px-3">
                           <input
                             type="checkbox"
-                            checked={selectedCohorts.includes('y3')}
+                            checked={selectedCohorts.includes("y3")}
                             onChange={() => {}}
                             className="rounded border-[#d9d9d9] text-[#046aff] focus:ring-0 cursor-pointer"
                           />
@@ -331,7 +546,9 @@ export function CohortMigrationWizard({
                   </span>
                   <div className="flex items-center justify-between text-[13px] font-medium">
                     <span className="text-[#1f1f1f]">BSc Computer Science</span>
-                    <span className="font-semibold text-[#046aff]">142 Students</span>
+                    <span className="font-semibold text-[#046aff]">
+                      142 Students
+                    </span>
                   </div>
                 </div>
               </div>
@@ -352,7 +569,8 @@ export function CohortMigrationWizard({
                     Equivalence Mapping
                   </h3>
                   <p className="text-[12px] text-[#808080]">
-                    Define course equivalencies between Version 2.0 and Version 3.0
+                    Define course equivalencies between Version 2.0 and Version
+                    3.0
                   </p>
                 </div>
 
@@ -440,7 +658,8 @@ export function CohortMigrationWizard({
                     <span>Alerts &amp; Warnings</span>
                   </div>
                   <p className="text-[12px] text-[#92400e] leading-relaxed">
-                    1 course mapping results in a credit difference of +1 Credit.
+                    1 course mapping results in a credit difference of +1
+                    Credit.
                   </p>
                 </div>
               </div>
@@ -459,7 +678,9 @@ export function CohortMigrationWizard({
                 <span className="text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
                   Total Students
                 </span>
-                <span className="text-[22px] font-bold text-[#1f1f1f]">142</span>
+                <span className="text-[22px] font-bold text-[#1f1f1f]">
+                  142
+                </span>
               </div>
               <div className="bg-white border border-[#ebebeb] rounded-[16px] p-5 shadow-xs flex flex-col gap-1">
                 <span className="text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
@@ -471,13 +692,17 @@ export function CohortMigrationWizard({
                 <span className="text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
                   Course Mappings
                 </span>
-                <span className="text-[22px] font-bold text-[#1f1f1f]">8 Active</span>
+                <span className="text-[22px] font-bold text-[#1f1f1f]">
+                  8 Active
+                </span>
               </div>
               <div className="bg-white border border-[#ebebeb] rounded-[16px] p-5 shadow-xs flex flex-col gap-1">
                 <span className="text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
                   Credit Difference
                 </span>
-                <span className="text-[22px] font-bold text-[#16a34a]">+1 Credit</span>
+                <span className="text-[22px] font-bold text-[#16a34a]">
+                  +1 Credit
+                </span>
               </div>
             </div>
 
@@ -540,7 +765,8 @@ export function CohortMigrationWizard({
                         Unmapped Source Courses
                       </h3>
                       <p className="text-[12px] text-[#808080]">
-                        Syllabus segments lacking direct equivalents in the destination version
+                        Syllabus segments lacking direct equivalents in the
+                        destination version
                       </p>
                     </div>
                     <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold bg-[#fee2e2] text-[#b91c1c]">
@@ -548,8 +774,12 @@ export function CohortMigrationWizard({
                     </span>
                   </div>
                   <div className="p-3 bg-[#fef2f2] border border-[#fecaca] rounded-[10px] text-[13px] flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-[#991b1b]">
-                    <span className="font-semibold">MTH 399 — Mathematical Special Projects (2 Cr)</span>
-                    <span className="text-xs">No match: Will be converted to elective credit</span>
+                    <span className="font-semibold">
+                      MTH 399 — Mathematical Special Projects (2 Cr)
+                    </span>
+                    <span className="text-xs">
+                      No match: Will be converted to elective credit
+                    </span>
                   </div>
                 </div>
 
@@ -562,7 +792,8 @@ export function CohortMigrationWizard({
                     Individual cases isolated from this bulk process batch
                   </p>
                   <p className="text-[13px] text-[#5c5c5c] font-medium leading-relaxed">
-                    • 3 students on formal academic probation will require manual program mapping.
+                    • 3 students on formal academic probation will require
+                    manual program mapping.
                   </p>
                 </div>
 
@@ -604,7 +835,8 @@ export function CohortMigrationWizard({
                       2 Unmapped Courses
                     </span>
                     <p className="text-[12px] text-[#be123c] leading-relaxed">
-                      These courses will register as elective exceptions unless manually mapped.
+                      These courses will register as elective exceptions unless
+                      manually mapped.
                     </p>
                   </div>
 
@@ -613,7 +845,8 @@ export function CohortMigrationWizard({
                       Credit Discrepancy Found
                     </span>
                     <p className="text-[12px] text-[#b45309] leading-relaxed">
-                      Software Engineering transition increases required credits by +1 for 142 students.
+                      Software Engineering transition increases required credits
+                      by +1 for 142 students.
                     </p>
                   </div>
 
@@ -712,7 +945,9 @@ export function CohortMigrationWizard({
                     <thead>
                       <tr className="border-b border-[#f0f0f0] text-[11px] font-bold text-[#808080] uppercase tracking-wider">
                         <th className="py-2.5 px-3">Original Course (v2.0)</th>
-                        <th className="py-2.5 px-3">New Mapped Course (v3.0)</th>
+                        <th className="py-2.5 px-3">
+                          New Mapped Course (v3.0)
+                        </th>
                         <th className="py-2.5 px-3">Credit Diff</th>
                       </tr>
                     </thead>
@@ -842,9 +1077,59 @@ export function CohortMigrationWizard({
                 <div className="bg-[#eff6ff] border border-[#bfdbfe] rounded-[10px] p-3 flex items-start gap-2.5">
                   <Info className="w-4 h-4 text-[#2563eb] shrink-0 mt-0.5" />
                   <p className="text-[11px] text-[#1e40af] leading-relaxed">
-                    SIS will apply approved changes to individual student records automatically upon publication.
+                    SIS will apply approved changes to individual student
+                    records automatically upon publication.
                   </p>
                 </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <label className="flex flex-col gap-1 text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
+                    Affected Student Scope (JSON)
+                    <textarea
+                      rows={3}
+                      value={affectedStudentScope}
+                      onChange={(event) => setAffectedStudentScope(event.target.value)}
+                      className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 font-mono text-[12px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
+                    Course Equivalence Mapping (JSON)
+                    <textarea
+                      rows={3}
+                      value={courseEquivalenceMapping}
+                      onChange={(event) => setCourseEquivalenceMapping(event.target.value)}
+                      className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 font-mono text-[12px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
+                    Credit Treatment (JSON)
+                    <textarea
+                      rows={3}
+                      value={creditTreatment}
+                      onChange={(event) => setCreditTreatment(event.target.value)}
+                      className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 font-mono text-[12px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1 text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
+                    Unmet Requirement Handling (JSON)
+                    <textarea
+                      rows={3}
+                      value={unmetRequirementHandling}
+                      onChange={(event) => setUnmetRequirementHandling(event.target.value)}
+                      className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 font-mono text-[12px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                    />
+                  </label>
+                </div>
+
+                <label className="flex flex-col gap-1 text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
+                  Effective At
+                  <input
+                    type="datetime-local"
+                    value={effectiveAt.slice(0, 16)}
+                    onChange={(event) => setEffectiveAt(event.target.value ? `${event.target.value}:00Z` : '')}
+                    className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 text-[13px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                  />
+                </label>
 
                 <div className="flex items-center gap-3 pt-2">
                   <button
@@ -855,10 +1140,11 @@ export function CohortMigrationWizard({
                   </button>
                   <button
                     onClick={handleSubmit}
-                    className="flex-1 py-2.5 bg-[#046aff] hover:bg-[#0356d6] text-white rounded-[10px] text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                    disabled={createMigration.isPending}
+                    className="flex-1 py-2.5 bg-[#046aff] hover:bg-[#0356d6] text-white rounded-[10px] text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    <span>Submit for Review</span>
+                    <span>{createMigration.isPending ? 'Submitting...' : 'Submit for Review'}</span>
                   </button>
                 </div>
               </div>
@@ -872,15 +1158,15 @@ export function CohortMigrationWizard({
             <button
               onClick={() => {
                 if (currentStep === 1) onCancel();
-                else setCurrentStep((prev) => (prev - 1) as any);
+                else goToStep(currentStep - 1);
               }}
               className="px-4 py-2 border border-[#d9d9d9] bg-white hover:bg-[#f5f5f5] text-[#1f1f1f] rounded-[10px] text-[13px] font-semibold transition-colors cursor-pointer shadow-xs"
             >
-              {currentStep === 1 ? 'Cancel' : 'Back'}
+              {currentStep === 1 ? "Cancel" : "Back"}
             </button>
             {currentStep > 1 && (
               <button
-                onClick={() => alert('Progress saved successfully')}
+                onClick={() => alert("Progress saved successfully")}
                 className="px-4 py-2 border border-[#d9d9d9] bg-white hover:bg-[#f5f5f5] text-[#1f1f1f] rounded-[10px] text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
               >
                 <Save className="w-3.5 h-3.5 text-[#5c5c5c]" />
@@ -888,7 +1174,7 @@ export function CohortMigrationWizard({
               </button>
             )}
             <button
-              onClick={() => setCurrentStep((prev) => (prev + 1) as any)}
+              onClick={() => goToStep(currentStep + 1)}
               className="px-5 py-2 bg-[#046aff] hover:bg-[#0356d6] text-white rounded-[10px] text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
             >
               <span>Next</span>

@@ -31,6 +31,64 @@ export interface CurriculumMigrationCreateResponse {
   data: CurriculumMigrationResponseData;
 }
 
+export interface CurriculumMigrationSubmitRequest {
+  row_version: number;
+  reason?: string | null;
+}
+
+export interface CurriculumMigrationSubmitResponse {
+  status?: string;
+  message?: string;
+  data: CurriculumMigrationResponseData;
+}
+
+export interface CurriculumMigrationApproveResponse {
+  status?: string;
+  message?: string;
+  data: CurriculumMigrationResponseData;
+}
+
+export interface CurriculumMigrationRejectResponse {
+  status?: string;
+  message?: string;
+  data: CurriculumMigrationResponseData;
+}
+
+export interface CurriculumMigrationPreviewResponse {
+  status?: string;
+  message?: string;
+  data: {
+    migration_id: string;
+    affected_student_scope: Record<string, unknown>;
+    note: string;
+  };
+}
+
+export interface CurriculumMigrationGetResponse {
+  status?: string;
+  message?: string;
+  data: CurriculumMigrationResponseData;
+}
+
+export interface CurriculumMigrationListQueryParams {
+  status?: string | null;
+  limit?: number | null;
+  offset?: number | null;
+}
+
+export interface CurriculumMigrationListPaginationData {
+  items: CurriculumMigrationResponseData[];
+  total: number;
+  limit: number;
+  offset: number;
+}
+
+export interface CurriculumMigrationListResponse {
+  status?: string;
+  message?: string;
+  data: CurriculumMigrationListPaginationData;
+}
+
 export interface CurriculumMigrationValidationErrorItem {
   loc: (string | number)[];
   msg: string;
