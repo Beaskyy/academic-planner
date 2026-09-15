@@ -1,41 +1,52 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { SharedSidebar } from '@/features/shared/sidebar';
-import { OfferingsDashboard } from './components/offerings-dashboard';
-import { OfferingEditor } from './components/offering-editor';
-import { StaffSearchModal, StaffMember } from './components/staff-search-modal';
-import { OfferingEditorBlocked } from './components/offering-editor-blocked';
-import { OverrideInvalidatedModal } from './components/override-invalidated-modal';
-import { Sparkles } from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
+import { SharedSidebar } from "@/features/shared/sidebar";
+import { OfferingsDashboard } from "./components/offerings-dashboard";
+import { OfferingEditor } from "./components/offering-editor";
+import { StaffSearchModal, StaffMember } from "./components/staff-search-modal";
+import { OfferingEditorBlocked } from "./components/offering-editor-blocked";
+import { OverrideInvalidatedModal } from "./components/override-invalidated-modal";
+import { Sparkles } from "lucide-react";
 
-export type OfferingsViewState = 'dashboard' | 'edit' | 'staff-search' | 'blocked';
+export type OfferingsViewState =
+  | "dashboard"
+  | "edit"
+  | "staff-search"
+  | "blocked";
 
 export function OfferingsView() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const paramView = searchParams.get('view') as OfferingsViewState | null;
-  const paramSection = searchParams.get('section') || 'CSC 301-A';
+  const paramView = searchParams.get("view") as OfferingsViewState | null;
+  const paramSection = searchParams.get("section") || "CSC 301-A";
 
-  const [currentView, setCurrentView] = useState<OfferingsViewState>('dashboard');
+  const [currentView, setCurrentView] =
+    useState<OfferingsViewState>("dashboard");
   const [isOverrideModalOpen, setIsOverrideModalOpen] = useState(false);
   const [selectedSection, setSelectedSection] = useState(paramSection);
+  const [selectedOfferingId, setSelectedOfferingId] = useState<
+    string | undefined
+  >();
+  const [selectedOfferingRowVersion, setSelectedOfferingRowVersion] = useState<
+    number | undefined
+  >();
   const [leadInstructor, setLeadInstructor] = useState({
-    name: 'Dr. Charles Ononiwu',
-    department: 'Dept. of Computer Science',
-    workload: 'Current workload: 2/3 Courses',
+    name: "Dr. Charles Ononiwu",
+    department: "Dept. of Computer Science",
+    workload: "Current workload: 2/3 Courses",
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     if (
       paramView &&
-      ['dashboard', 'edit', 'staff-search', 'blocked'].includes(paramView)
+      ["dashboard", "edit", "staff-search", "blocked"].includes(paramView)
     ) {
       setCurrentView(paramView);
     }
-    if (paramView === 'override' as any) {
+    if (paramView === ("override" as any)) {
       setIsOverrideModalOpen(true);
     }
   }, [paramView]);
@@ -44,15 +55,15 @@ export function OfferingsView() {
     if (sectionCode) setSelectedSection(sectionCode);
     setCurrentView(view);
     const newParams = new URLSearchParams(searchParams.toString());
-    if (view === 'dashboard') {
-      newParams.delete('view');
-      newParams.delete('section');
+    if (view === "dashboard") {
+      newParams.delete("view");
+      newParams.delete("section");
     } else {
-      newParams.set('view', view);
-      if (sectionCode) newParams.set('section', sectionCode);
+      newParams.set("view", view);
+      if (sectionCode) newParams.set("section", sectionCode);
     }
     const queryString = newParams.toString();
-    router.replace(queryString ? `/offerings?${queryString}` : '/offerings');
+    router.replace(queryString ? `/offerings?${queryString}` : "/offerings");
   };
 
   const handleSelectStaff = (staff: StaffMember) => {
@@ -61,7 +72,17 @@ export function OfferingsView() {
       department: `Dept. of ${staff.department}`,
       workload: `Current workload: ${staff.coursesCount}/3 Courses`,
     });
-    switchView('edit', selectedSection);
+    switchView("edit", selectedSection);
+  };
+
+  const handleEditOffering = (
+    sectionCode: string,
+    offeringId: string,
+    rowVersion: number,
+  ) => {
+    setSelectedOfferingId(offeringId);
+    setSelectedOfferingRowVersion(rowVersion);
+    switchView("edit", sectionCode);
   };
 
   return (
@@ -74,37 +95,39 @@ export function OfferingsView() {
 
       {/* Main Workspace */}
       <main className="flex-1 min-w-0 flex flex-col">
-        {currentView === 'dashboard' && (
+        {currentView === "dashboard" && (
           <OfferingsDashboard
-            onCreateOffering={() => switchView('edit', 'CSC 101-A')}
-            onEditOffering={(code) => switchView('edit', code)}
+            onCreateOffering={() => switchView("edit", "CSC 101-A")}
+            onEditOffering={handleEditOffering}
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />
         )}
 
-        {currentView === 'edit' && (
+        {currentView === "edit" && (
           <OfferingEditor
             sectionCode={selectedSection}
+            offeringId={selectedOfferingId}
+            rowVersion={selectedOfferingRowVersion}
             leadInstructor={leadInstructor}
-            onCancel={() => switchView('dashboard')}
-            onSave={() => switchView('dashboard')}
-            onChangeStaff={() => switchView('staff-search')}
+            onCancel={() => switchView("dashboard")}
+            onSave={() => switchView("dashboard")}
+            onChangeStaff={() => switchView("staff-search")}
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />
         )}
 
-        {currentView === 'blocked' && (
+        {currentView === "blocked" && (
           <OfferingEditorBlocked
-            onCancel={() => switchView('dashboard')}
-            onSaveBlockedDraft={() => switchView('dashboard')}
+            onCancel={() => switchView("dashboard")}
+            onSaveBlockedDraft={() => switchView("dashboard")}
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />
         )}
 
-        {currentView === 'staff-search' && (
+        {currentView === "staff-search" && (
           <StaffSearchModal
             onSelectStaff={handleSelectStaff}
-            onCancel={() => switchView('edit', selectedSection)}
+            onCancel={() => switchView("edit", selectedSection)}
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />
         )}
@@ -115,7 +138,7 @@ export function OfferingsView() {
           onAcknowledge={() => setIsOverrideModalOpen(false)}
           onRequestNewOverride={() => {
             setIsOverrideModalOpen(false);
-            switchView('edit');
+            switchView("edit");
           }}
         />
       </main>
@@ -127,31 +150,31 @@ export function OfferingsView() {
           <span>Figma Screen:</span>
         </div>
         <button
-          onClick={() => switchView('dashboard')}
+          onClick={() => switchView("dashboard")}
           className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
-            currentView === 'dashboard'
-              ? 'bg-[#046aff] text-white shadow-xs'
-              : 'text-[#5c5c5c] hover:text-[#1f1f1f] hover:bg-[#f5f5f5]'
+            currentView === "dashboard"
+              ? "bg-[#046aff] text-white shadow-xs"
+              : "text-[#5c5c5c] hover:text-[#1f1f1f] hover:bg-[#f5f5f5]"
           }`}
         >
           Offerings Dashboard
         </button>
         <button
-          onClick={() => switchView('edit')}
+          onClick={() => switchView("edit")}
           className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
-            currentView === 'edit'
-              ? 'bg-[#046aff] text-white shadow-xs'
-              : 'text-[#5c5c5c] hover:text-[#1f1f1f] hover:bg-[#f5f5f5]'
+            currentView === "edit"
+              ? "bg-[#046aff] text-white shadow-xs"
+              : "text-[#5c5c5c] hover:text-[#1f1f1f] hover:bg-[#f5f5f5]"
           }`}
         >
           Offering Editor
         </button>
         <button
-          onClick={() => switchView('blocked')}
+          onClick={() => switchView("blocked")}
           className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
-            currentView === 'blocked'
-              ? 'bg-[#ef4444] text-white shadow-xs'
-              : 'text-[#ef4444] hover:bg-[#fef2f2]'
+            currentView === "blocked"
+              ? "bg-[#ef4444] text-white shadow-xs"
+              : "text-[#ef4444] hover:bg-[#fef2f2]"
           }`}
         >
           APS-15 Blocked
@@ -160,18 +183,18 @@ export function OfferingsView() {
           onClick={() => setIsOverrideModalOpen(true)}
           className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
             isOverrideModalOpen
-              ? 'bg-[#c2410c] text-white shadow-xs'
-              : 'text-[#c2410c] hover:bg-[#fff7ed]'
+              ? "bg-[#c2410c] text-white shadow-xs"
+              : "text-[#c2410c] hover:bg-[#fff7ed]"
           }`}
         >
           APS-21 Override Modal
         </button>
         <button
-          onClick={() => switchView('staff-search')}
+          onClick={() => switchView("staff-search")}
           className={`px-2.5 py-1 rounded-full font-medium transition-all cursor-pointer ${
-            currentView === 'staff-search'
-              ? 'bg-[#046aff] text-white shadow-xs'
-              : 'text-[#5c5c5c] hover:text-[#1f1f1f] hover:bg-[#f5f5f5]'
+            currentView === "staff-search"
+              ? "bg-[#046aff] text-white shadow-xs"
+              : "text-[#5c5c5c] hover:text-[#1f1f1f] hover:bg-[#f5f5f5]"
           }`}
         >
           Assign Staff Search
