@@ -1,18 +1,16 @@
 'use client';
 
 import React from 'react';
+import { ChevronRight, CheckCircle2 } from 'lucide-react';
+import { usePublicationReview } from '@/hooks/use-publication-reviews';
 import {
-  ChevronRight,
-  AlertTriangle,
-  CheckCircle2,
-  Calendar,
-  Users,
-  Building,
-  Layers,
-  ArrowLeft,
-} from 'lucide-react';
+  formatDateTime,
+  formatReviewTitle,
+  formatStatusLabel,
+} from '../review-display';
 
 interface ApprovalDetailProps {
+  reviewId: string;
   onBackToQueue: () => void;
   onOpenReturnDialog: () => void;
   onOpenApproveDialog: () => void;
@@ -20,11 +18,14 @@ interface ApprovalDetailProps {
 }
 
 export function ApprovalDetail({
+  reviewId,
   onBackToQueue,
   onOpenReturnDialog,
   onOpenApproveDialog,
   onSwitchToMakerView,
 }: ApprovalDetailProps) {
+  const reviewQuery = usePublicationReview(reviewId);
+  const review = reviewQuery.data?.data;
   return (
     <div className="flex flex-col gap-6 max-w-[1240px] pb-20">
       {/* ── Breadcrumb & Page Title ───────────────────────────────── */}
@@ -37,13 +38,13 @@ export function ApprovalDetail({
             Approvals
           </button>
           <span>&gt;</span>
-          <span>Academic Calendar 2026/27</span>
+          <span>{review ? formatReviewTitle(review) : "Publication review"}</span>
           <span>&gt;</span>
           <span className="font-semibold text-[#0b0b0b]">Review</span>
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-[28px] font-bold text-[#0b0b0b] tracking-tight">
-            Review Academic Calendar
+            {review ? `Review ${formatReviewTitle(review)}` : "Review publication"}
           </h1>
           {onSwitchToMakerView && (
             <button
@@ -56,26 +57,36 @@ export function ApprovalDetail({
         </div>
       </div>
 
+      {reviewQuery.isError && (
+        <div
+          role="alert"
+          className="rounded-[12px] border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-[13px] text-[#B91C1C]"
+        >
+          {reviewQuery.error.message}
+        </div>
+      )}
+
       {/* ── Artifact Header Card ────────────────────────────────────── */}
       <div className="bg-white border border-[#ebebeb] rounded-[16px] p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="bg-[#f4ebff] text-[#7f56d9] text-[11px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
-              CALENDAR ARTIFACT
+              {review ? formatStatusLabel(review.artifact_type) : 'Publication'}
             </span>
             <span className="text-[13px] font-normal text-[#808080]">
-              ID: CAL-2026-R3
+              ID: {review?.artifact_id ?? reviewId}
             </span>
           </div>
           <h2 className="text-[20px] font-bold text-[#0b0b0b]">
-            Academic Calendar 2026/2027 draft
+            {review ? formatReviewTitle(review) : 'Loading publication review...'}
           </h2>
           <p className="text-[13px] text-[#5c5c5c]">
-            Submitted by <span className="font-semibold text-[#0b0b0b]">Dr. Marcus (VP Academic)</span> • 12 Jan 2026, 14:32 Lagos Time
+            Submitted {review ? formatDateTime(review.submitted_at) : '—'}
+            {review?.reason ? ` • ${review.reason}` : ''}
           </p>
         </div>
         <div className="hidden sm:flex items-center gap-2 text-xs font-medium text-[#1fc16b] bg-[#e0faec] px-3 py-1.5 rounded-full">
-          <CheckCircle2 className="w-4 h-4" /> Ready for Action
+          <CheckCircle2 className="w-4 h-4" /> {review ? formatStatusLabel(review.status) : 'Loading'}
         </div>
       </div>
 

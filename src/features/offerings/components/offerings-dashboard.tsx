@@ -35,6 +35,16 @@ export function OfferingsDashboard({
   const [selectedStatus, setSelectedStatus] = useState("All");
   const offeringsQuery = useListCourseOfferings({ limit: 200, offset: 0 });
   const offerings = offeringsQuery.data?.data.items ?? [];
+  const totalOfferings = offeringsQuery.data?.data.total ?? offerings.length;
+  const draftCount = offerings.filter(
+    (offering) => offering.status.toLowerCase() === "draft",
+  ).length;
+  const publishedCount = offerings.filter((offering) =>
+    ["published", "approved"].includes(offering.status.toLowerCase()),
+  ).length;
+  const openRegistrationCount = offerings.filter((offering) =>
+    (offering.registration_availability || "").toLowerCase().includes("open"),
+  ).length;
 
   return (
     <div className="flex-1 min-w-0 bg-[#fafafa] flex flex-col">
@@ -80,7 +90,9 @@ export function OfferingsDashboard({
             </span>
             <div className="flex items-center justify-between">
               <span className="text-[22px] font-bold text-[#1f1f1f]">
-                48 Sections
+                {offeringsQuery.isLoading
+                  ? "…"
+                  : `${totalOfferings} ${totalOfferings === 1 ? "Section" : "Sections"}`}
               </span>
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0]">
                 Active Session
@@ -91,10 +103,12 @@ export function OfferingsDashboard({
           {/* Card 2 */}
           <div className="bg-white border border-[#ebebeb] rounded-[16px] p-5 shadow-xs flex flex-col justify-between h-[104px]">
             <span className="text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
-              Sections with Lead
+              Draft Offerings
             </span>
             <div className="flex items-center justify-between">
-              <span className="text-[22px] font-bold text-[#1f1f1f]">41</span>
+              <span className="text-[22px] font-bold text-[#1f1f1f]">
+                {offeringsQuery.isLoading ? "…" : draftCount}
+              </span>
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0]">
                 Complete Staffing
               </span>
@@ -104,12 +118,14 @@ export function OfferingsDashboard({
           {/* Card 3 */}
           <div className="bg-white border border-[#ebebeb] rounded-[16px] p-5 shadow-xs flex flex-col justify-between h-[104px]">
             <span className="text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
-              Sections without Lead
+              Published Offerings
             </span>
             <div className="flex items-center justify-between">
-              <span className="text-[22px] font-bold text-[#dc2626]">7</span>
-              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#fff1f2] text-[#be123c] border border-[#fecdd3]">
-                Action Required
+              <span className="text-[22px] font-bold text-[#1f1f1f]">
+                {offeringsQuery.isLoading ? "…" : publishedCount}
+              </span>
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0]">
+                Live catalogue
               </span>
             </div>
           </div>
@@ -117,11 +133,11 @@ export function OfferingsDashboard({
           {/* Card 4 */}
           <div className="bg-white border border-[#ebebeb] rounded-[16px] p-5 shadow-xs flex flex-col justify-between h-[104px]">
             <span className="text-[11px] font-semibold text-[#808080] uppercase tracking-wider">
-              Avg. Capacity Util.
+              Open Registration
             </span>
             <div className="flex items-center justify-between">
               <span className="text-[22px] font-bold text-[#1f1f1f]">
-                82.4%
+                {offeringsQuery.isLoading ? "…" : openRegistrationCount}
               </span>
               <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-[#eef4ff] text-[#046aff] border border-[#d2e4ff]">
                 Healthy load
