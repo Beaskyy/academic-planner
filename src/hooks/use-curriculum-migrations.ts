@@ -28,7 +28,8 @@ export function useCurriculumMigration(migrationId?: string) {
 
   return useQuery<CurriculumMigrationGetResponse, CurriculumMigrationApiError>({
     queryKey: [...CURRICULUM_MIGRATIONS_QUERY_KEY, "detail", migrationId],
-    queryFn: () => curriculumMigrationsService.getMigration(migrationId!, accessToken),
+    queryFn: () =>
+      curriculumMigrationsService.getMigration(migrationId!, accessToken),
     enabled: Boolean(isAuthenticated && migrationId),
   });
 }
@@ -36,9 +37,13 @@ export function useCurriculumMigration(migrationId?: string) {
 export function usePreviewCurriculumMigration(migrationId?: string) {
   const { accessToken, isAuthenticated } = useAuthSession();
 
-  return useQuery<CurriculumMigrationPreviewResponse, CurriculumMigrationApiError>({
+  return useQuery<
+    CurriculumMigrationPreviewResponse,
+    CurriculumMigrationApiError
+  >({
     queryKey: [...CURRICULUM_MIGRATIONS_QUERY_KEY, "preview", migrationId],
-    queryFn: () => curriculumMigrationsService.previewMigration(migrationId!, accessToken),
+    queryFn: () =>
+      curriculumMigrationsService.previewMigration(migrationId!, accessToken),
     enabled: Boolean(isAuthenticated && migrationId),
   });
 }
@@ -48,11 +53,14 @@ export function useListCurriculumMigrations(
 ) {
   const { accessToken, isAuthenticated } = useAuthSession();
 
-  return useQuery<CurriculumMigrationListResponse, CurriculumMigrationApiError>({
-    queryKey: [...CURRICULUM_MIGRATIONS_QUERY_KEY, params],
-    queryFn: () => curriculumMigrationsService.listMigrations(params, accessToken),
-    enabled: isAuthenticated,
-  });
+  return useQuery<CurriculumMigrationListResponse, CurriculumMigrationApiError>(
+    {
+      queryKey: [...CURRICULUM_MIGRATIONS_QUERY_KEY, params],
+      queryFn: () =>
+        curriculumMigrationsService.listMigrations(params, accessToken),
+      enabled: isAuthenticated,
+    },
+  );
 }
 
 export function useCreateCurriculumMigration() {
@@ -84,9 +92,15 @@ export function useSubmitCurriculumMigration() {
     { migrationId: string; payload: CurriculumMigrationSubmitRequest }
   >({
     mutationFn: ({ migrationId, payload }) =>
-      curriculumMigrationsService.submitMigration(migrationId, payload, accessToken),
+      curriculumMigrationsService.submitMigration(
+        migrationId,
+        payload,
+        accessToken,
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CURRICULUM_MIGRATIONS_QUERY_KEY });
+      queryClient.invalidateQueries({
+        queryKey: CURRICULUM_MIGRATIONS_QUERY_KEY,
+      });
     },
   });
 }
@@ -101,9 +115,15 @@ export function useApproveCurriculumMigration() {
     { migrationId: string; payload: CurriculumMigrationSubmitRequest }
   >({
     mutationFn: ({ migrationId, payload }) =>
-      curriculumMigrationsService.approveMigration(migrationId, payload, accessToken),
+      curriculumMigrationsService.approveMigration(
+        migrationId,
+        payload,
+        accessToken,
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CURRICULUM_MIGRATIONS_QUERY_KEY });
+      queryClient.invalidateQueries({
+        queryKey: CURRICULUM_MIGRATIONS_QUERY_KEY,
+      });
     },
   });
 }
@@ -118,9 +138,15 @@ export function useRejectCurriculumMigration() {
     { migrationId: string; payload: CurriculumMigrationSubmitRequest }
   >({
     mutationFn: ({ migrationId, payload }) =>
-      curriculumMigrationsService.rejectMigration(migrationId, payload, accessToken),
+      curriculumMigrationsService.rejectMigration(
+        migrationId,
+        payload,
+        accessToken,
+      ),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: CURRICULUM_MIGRATIONS_QUERY_KEY });
+      queryClient.invalidateQueries({
+        queryKey: CURRICULUM_MIGRATIONS_QUERY_KEY,
+      });
     },
   });
 }

@@ -66,15 +66,19 @@ export const curriculumMigrationsService = {
     if (!res.ok) {
       if (res.status === 422) {
         const errData = json as CurriculumMigrationValidationErrorResponse;
-        const rawErrors = Array.isArray(errData?.detail) ? errData.detail : undefined;
-        const message = rawErrors?.map((error) => error.msg).join("; ") ||
+        const rawErrors = Array.isArray(errData?.detail)
+          ? errData.detail
+          : undefined;
+        const message =
+          rawErrors?.map((error) => error.msg).join("; ") ||
           errData?.message ||
           "Validation error occurred while fetching the curriculum migration.";
         throw new CurriculumMigrationApiError(message, 422, errData, rawErrors);
       }
 
       throw new CurriculumMigrationApiError(
-        json?.message || `Failed to fetch curriculum migration with status ${res.status}`,
+        json?.message ||
+          `Failed to fetch curriculum migration with status ${res.status}`,
         res.status,
         json,
       );
@@ -108,15 +112,19 @@ export const curriculumMigrationsService = {
     if (!res.ok) {
       if (res.status === 422) {
         const errData = json as CurriculumMigrationValidationErrorResponse;
-        const rawErrors = Array.isArray(errData?.detail) ? errData.detail : undefined;
-        const message = rawErrors?.map((error) => error.msg).join("; ") ||
+        const rawErrors = Array.isArray(errData?.detail)
+          ? errData.detail
+          : undefined;
+        const message =
+          rawErrors?.map((error) => error.msg).join("; ") ||
           errData?.message ||
           "Validation error occurred while previewing the curriculum migration.";
         throw new CurriculumMigrationApiError(message, 422, errData, rawErrors);
       }
 
       throw new CurriculumMigrationApiError(
-        json?.message || `Failed to preview curriculum migration with status ${res.status}`,
+        json?.message ||
+          `Failed to preview curriculum migration with status ${res.status}`,
         res.status,
         json,
       );
@@ -160,15 +168,19 @@ export const curriculumMigrationsService = {
     if (!res.ok) {
       if (res.status === 422) {
         const errData = json as CurriculumMigrationValidationErrorResponse;
-        const rawErrors = Array.isArray(errData?.detail) ? errData.detail : undefined;
-        const message = rawErrors?.map((error) => error.msg).join("; ") ||
+        const rawErrors = Array.isArray(errData?.detail)
+          ? errData.detail
+          : undefined;
+        const message =
+          rawErrors?.map((error) => error.msg).join("; ") ||
           errData?.message ||
           "Validation error occurred while fetching curriculum migrations.";
         throw new CurriculumMigrationApiError(message, 422, errData, rawErrors);
       }
 
       throw new CurriculumMigrationApiError(
-        json?.message || `Failed to fetch curriculum migrations with status ${res.status}`,
+        json?.message ||
+          `Failed to fetch curriculum migrations with status ${res.status}`,
         res.status,
         json,
       );
@@ -254,15 +266,19 @@ export const curriculumMigrationsService = {
     if (!res.ok) {
       if (res.status === 422) {
         const errData = json as CurriculumMigrationValidationErrorResponse;
-        const rawErrors = Array.isArray(errData?.detail) ? errData.detail : undefined;
-        const message = rawErrors?.map((error) => error.msg).join("; ") ||
+        const rawErrors = Array.isArray(errData?.detail)
+          ? errData.detail
+          : undefined;
+        const message =
+          rawErrors?.map((error) => error.msg).join("; ") ||
           errData?.message ||
           "Validation error occurred while submitting the curriculum migration.";
         throw new CurriculumMigrationApiError(message, 422, errData, rawErrors);
       }
 
       throw new CurriculumMigrationApiError(
-        json?.message || `Failed to submit curriculum migration with status ${res.status}`,
+        json?.message ||
+          `Failed to submit curriculum migration with status ${res.status}`,
         res.status,
         json,
       );
@@ -300,15 +316,19 @@ export const curriculumMigrationsService = {
     if (!res.ok) {
       if (res.status === 422) {
         const errData = json as CurriculumMigrationValidationErrorResponse;
-        const rawErrors = Array.isArray(errData?.detail) ? errData.detail : undefined;
-        const message = rawErrors?.map((error) => error.msg).join("; ") ||
+        const rawErrors = Array.isArray(errData?.detail)
+          ? errData.detail
+          : undefined;
+        const message =
+          rawErrors?.map((error) => error.msg).join("; ") ||
           errData?.message ||
           "Validation error occurred while approving the curriculum migration.";
         throw new CurriculumMigrationApiError(message, 422, errData, rawErrors);
       }
 
       throw new CurriculumMigrationApiError(
-        json?.message || `Failed to approve curriculum migration with status ${res.status}`,
+        json?.message ||
+          `Failed to approve curriculum migration with status ${res.status}`,
         res.status,
         json,
       );
@@ -346,15 +366,19 @@ export const curriculumMigrationsService = {
     if (!res.ok) {
       if (res.status === 422) {
         const errData = json as CurriculumMigrationValidationErrorResponse;
-        const rawErrors = Array.isArray(errData?.detail) ? errData.detail : undefined;
-        const message = rawErrors?.map((error) => error.msg).join("; ") ||
+        const rawErrors = Array.isArray(errData?.detail)
+          ? errData.detail
+          : undefined;
+        const message =
+          rawErrors?.map((error) => error.msg).join("; ") ||
           errData?.message ||
           "Validation error occurred while rejecting the curriculum migration.";
         throw new CurriculumMigrationApiError(message, 422, errData, rawErrors);
       }
 
       throw new CurriculumMigrationApiError(
-        json?.message || `Failed to reject curriculum migration with status ${res.status}`,
+        json?.message ||
+          `Failed to reject curriculum migration with status ${res.status}`,
         res.status,
         json,
       );

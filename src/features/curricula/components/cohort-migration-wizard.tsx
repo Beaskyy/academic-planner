@@ -53,15 +53,22 @@ export function CohortMigrationWizard({
     useState("{}");
   const [effectiveAt, setEffectiveAt] = useState("2026-09-01T00:00:00Z");
   const [migrationError, setMigrationError] = useState<string | null>(null);
-  const [previewMigrationId, setPreviewMigrationId] = useState<string | undefined>();
-  const [detailMigrationId, setDetailMigrationId] = useState<string | undefined>();
+  const [previewMigrationId, setPreviewMigrationId] = useState<
+    string | undefined
+  >();
+  const [detailMigrationId, setDetailMigrationId] = useState<
+    string | undefined
+  >();
   const createMigration = useCreateCurriculumMigration();
   const submitMigration = useSubmitCurriculumMigration();
   const approveMigration = useApproveCurriculumMigration();
   const rejectMigration = useRejectCurriculumMigration();
   const previewMigration = usePreviewCurriculumMigration(previewMigrationId);
   const migrationDetail = useCurriculumMigration(detailMigrationId);
-  const migrationsQuery = useListCurriculumMigrations({ limit: 200, offset: 0 });
+  const migrationsQuery = useListCurriculumMigrations({
+    limit: 200,
+    offset: 0,
+  });
 
   const toggleCohort = (id: string) => {
     if (selectedCohorts.includes(id)) {
@@ -171,7 +178,10 @@ export function CohortMigrationWizard({
         </div>
       )}
       {submitMigration.isError && (
-        <div className="fixed top-4 right-4 z-50 mt-28 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg" role="alert">
+        <div
+          className="fixed top-4 right-4 z-50 mt-28 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg"
+          role="alert"
+        >
           {submitMigration.error.message}
           {submitMigration.error.rawErrors?.map((error, index) => (
             <div key={`submit-${error.type}-${index}`}>{error.msg}</div>
@@ -179,7 +189,10 @@ export function CohortMigrationWizard({
         </div>
       )}
       {approveMigration.isError && (
-        <div className="fixed top-4 right-4 z-50 mt-40 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg" role="alert">
+        <div
+          className="fixed top-4 right-4 z-50 mt-40 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg"
+          role="alert"
+        >
           {approveMigration.error.message}
           {approveMigration.error.rawErrors?.map((error, index) => (
             <div key={`approve-${error.type}-${index}`}>{error.msg}</div>
@@ -187,7 +200,10 @@ export function CohortMigrationWizard({
         </div>
       )}
       {rejectMigration.isError && (
-        <div className="fixed top-4 right-4 z-50 mt-52 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg" role="alert">
+        <div
+          className="fixed top-4 right-4 z-50 mt-52 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg"
+          role="alert"
+        >
           {rejectMigration.error.message}
           {rejectMigration.error.rawErrors?.map((error, index) => (
             <div key={`reject-${error.type}-${index}`}>{error.msg}</div>
@@ -195,7 +211,10 @@ export function CohortMigrationWizard({
         </div>
       )}
       {previewMigration.isError && (
-        <div className="fixed top-4 right-4 z-50 mt-64 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg" role="alert">
+        <div
+          className="fixed top-4 right-4 z-50 mt-64 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg"
+          role="alert"
+        >
           {previewMigration.error.message}
           {previewMigration.error.rawErrors?.map((error, index) => (
             <div key={`preview-${error.type}-${index}`}>{error.msg}</div>
@@ -234,9 +253,7 @@ export function CohortMigrationWizard({
           {steps.map((s, idx) => (
             <React.Fragment key={s.num}>
               <div
-                onClick={() =>
-                  s.num < currentStep && goToStep(s.num)
-                }
+                onClick={() => s.num < currentStep && goToStep(s.num)}
                 className={`flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full transition-all ${
                   currentStep === s.num
                     ? "bg-[#046aff] text-white"
@@ -268,18 +285,27 @@ export function CohortMigrationWizard({
             <div className="lg:col-span-12 bg-white border border-[#ebebeb] rounded-[16px] p-6 shadow-xs flex flex-col gap-4">
               <div className="flex items-center justify-between gap-3">
                 <div>
-                  <h3 className="text-[16px] font-bold text-[#1f1f1f]">Migration Cases</h3>
+                  <h3 className="text-[16px] font-bold text-[#1f1f1f]">
+                    Migration Cases
+                  </h3>
                   <p className="text-[12px] text-[#808080] mt-1">
                     {migrationsQuery.data
                       ? `${migrationsQuery.data.data.total} case${migrationsQuery.data.data.total === 1 ? "" : "s"} loaded`
                       : "Loading migration cases..."}
                   </p>
                 </div>
-                {migrationsQuery.isFetching && <span className="text-[11px] text-[#808080]">Refreshing...</span>}
+                {migrationsQuery.isFetching && (
+                  <span className="text-[11px] text-[#808080]">
+                    Refreshing...
+                  </span>
+                )}
               </div>
 
               {migrationsQuery.isError && (
-                <div role="alert" className="rounded-[8px] border border-[#F69999] bg-[#FEF0F0] px-3 py-2 text-[12px] text-[#B91C1C]">
+                <div
+                  role="alert"
+                  className="rounded-[8px] border border-[#F69999] bg-[#FEF0F0] px-3 py-2 text-[12px] text-[#B91C1C]"
+                >
                   {migrationsQuery.error.message}
                   {migrationsQuery.error.rawErrors?.map((error, index) => (
                     <div key={`${error.type}-${index}`}>{error.msg}</div>
@@ -287,97 +313,167 @@ export function CohortMigrationWizard({
                 </div>
               )}
 
-              {!migrationsQuery.isLoading && !migrationsQuery.isError && migrationsQuery.data?.data.items.length === 0 && (
-                <p className="text-[12px] text-[#808080]">No migration cases found.</p>
-              )}
+              {!migrationsQuery.isLoading &&
+                !migrationsQuery.isError &&
+                migrationsQuery.data?.data.items.length === 0 && (
+                  <p className="text-[12px] text-[#808080]">
+                    No migration cases found.
+                  </p>
+                )}
 
-              {migrationsQuery.data && migrationsQuery.data.data.items.length > 0 && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {migrationsQuery.data.data.items.map((migration) => (
-                    <div key={migration.id} className="rounded-[8px] border border-[#e5e5e5] bg-[#fafafa] px-3 py-2 text-[12px]">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="font-semibold text-[#1f1f1f]">{migration.status}</span>
-                            <div className="flex items-center gap-2">
-                              <span className="text-[#808080]">Row version {migration.row_version}</span>
-                              <button
-                                type="button"
-                                onClick={() => setPreviewMigrationId(migration.id)}
-                                className="rounded-[6px] border border-[#d2e4ff] bg-white px-2 py-1 text-[11px] font-semibold text-[#046aff] hover:bg-[#f0f8ff]"
-                              >
-                                Preview
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => setDetailMigrationId(migration.id)}
-                                className="rounded-[6px] border border-[#e5e5e5] bg-white px-2 py-1 text-[11px] font-semibold text-[#5c5c5c] hover:bg-[#f5f5f5]"
-                              >
-                                Details
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => submitMigration.mutate({
+              {migrationsQuery.data &&
+                migrationsQuery.data.data.items.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {migrationsQuery.data.data.items.map((migration) => (
+                      <div
+                        key={migration.id}
+                        className="rounded-[8px] border border-[#e5e5e5] bg-[#fafafa] px-3 py-2 text-[12px]"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-semibold text-[#1f1f1f]">
+                            {migration.status}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[#808080]">
+                              Row version {migration.row_version}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPreviewMigrationId(migration.id)
+                              }
+                              className="rounded-[6px] border border-[#d2e4ff] bg-white px-2 py-1 text-[11px] font-semibold text-[#046aff] hover:bg-[#f0f8ff]"
+                            >
+                              Preview
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDetailMigrationId(migration.id)}
+                              className="rounded-[6px] border border-[#e5e5e5] bg-white px-2 py-1 text-[11px] font-semibold text-[#5c5c5c] hover:bg-[#f5f5f5]"
+                            >
+                              Details
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                submitMigration.mutate({
                                   migrationId: migration.id,
-                                  payload: { row_version: migration.row_version, reason: justification.trim() || null },
-                                })}
-                                disabled={submitMigration.isPending}
-                                className="rounded-[6px] bg-[#046aff] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[#0356d6] disabled:opacity-50"
-                              >
-                                {submitMigration.isPending ? "Submitting..." : "Submit"}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => rejectMigration.mutate({
+                                  payload: {
+                                    row_version: migration.row_version,
+                                    reason: justification.trim() || null,
+                                  },
+                                })
+                              }
+                              disabled={submitMigration.isPending}
+                              className="rounded-[6px] bg-[#046aff] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[#0356d6] disabled:opacity-50"
+                            >
+                              {submitMigration.isPending
+                                ? "Submitting..."
+                                : "Submit"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                rejectMigration.mutate({
                                   migrationId: migration.id,
-                                  payload: { row_version: migration.row_version, reason: justification.trim() || null },
-                                })}
-                                disabled={rejectMigration.isPending}
-                                className="rounded-[6px] border border-[#fecaca] bg-white px-2 py-1 text-[11px] font-semibold text-[#b91c1c] hover:bg-[#fef2f2] disabled:opacity-50"
-                              >
-                                {rejectMigration.isPending ? "Rejecting..." : "Reject"}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => approveMigration.mutate({
+                                  payload: {
+                                    row_version: migration.row_version,
+                                    reason: justification.trim() || null,
+                                  },
+                                })
+                              }
+                              disabled={rejectMigration.isPending}
+                              className="rounded-[6px] border border-[#fecaca] bg-white px-2 py-1 text-[11px] font-semibold text-[#b91c1c] hover:bg-[#fef2f2] disabled:opacity-50"
+                            >
+                              {rejectMigration.isPending
+                                ? "Rejecting..."
+                                : "Reject"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                approveMigration.mutate({
                                   migrationId: migration.id,
-                                  payload: { row_version: migration.row_version, reason: justification.trim() || null },
-                                })}
-                                disabled={approveMigration.isPending}
-                                className="rounded-[6px] bg-[#166534] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[#14532d] disabled:opacity-50"
-                              >
-                                {approveMigration.isPending ? "Approving..." : "Approve"}
-                              </button>
+                                  payload: {
+                                    row_version: migration.row_version,
+                                    reason: justification.trim() || null,
+                                  },
+                                })
+                              }
+                              disabled={approveMigration.isPending}
+                              className="rounded-[6px] bg-[#166534] px-2 py-1 text-[11px] font-semibold text-white hover:bg-[#14532d] disabled:opacity-50"
+                            >
+                              {approveMigration.isPending
+                                ? "Approving..."
+                                : "Approve"}
+                            </button>
+                          </div>
+                        </div>
+                        <div className="mt-1 text-[#5c5c5c] break-all">
+                          Source: {migration.source_curriculum_id}
+                        </div>
+                        <div className="text-[#5c5c5c] break-all">
+                          Target: {migration.target_curriculum_id}
+                        </div>
+                        {migration.effective_at && (
+                          <div className="text-[#808080] mt-1">
+                            Effective: {migration.effective_at}
+                          </div>
+                        )}
+                        {previewMigrationId === migration.id &&
+                          previewMigration.isFetching && (
+                            <div className="mt-2 text-[#808080]">
+                              Loading preview...
                             </div>
+                          )}
+                        {previewMigrationId === migration.id &&
+                          previewMigration.data && (
+                            <div className="mt-2 rounded-[6px] border border-[#d2e4ff] bg-[#f0f8ff] p-2 text-[#334155]">
+                              <div className="font-semibold">
+                                Affected student scope
+                              </div>
+                              <pre className="mt-1 max-h-24 overflow-auto whitespace-pre-wrap font-mono text-[11px]">
+                                {JSON.stringify(
+                                  previewMigration.data.data
+                                    .affected_student_scope,
+                                  null,
+                                  2,
+                                )}
+                              </pre>
+                              <div className="mt-1 text-[#5c5c5c]">
+                                {previewMigration.data.data.note}
+                              </div>
+                            </div>
+                          )}
+                        {detailMigrationId === migration.id &&
+                          migrationDetail.isFetching && (
+                            <div className="mt-2 text-[#808080]">
+                              Loading details...
+                            </div>
+                          )}
+                        {detailMigrationId === migration.id &&
+                          migrationDetail.data && (
+                            <div className="mt-2 rounded-[6px] border border-[#e5e5e5] bg-white p-2 text-[#334155]">
+                              <div className="font-semibold">
+                                Migration details
+                              </div>
+                              <div className="mt-1">
+                                Status: {migrationDetail.data.data.status}
+                              </div>
+                              <div>
+                                Reason:{" "}
+                                {migrationDetail.data.data.reason || "None"}
+                              </div>
+                              <div>
+                                Row version:{" "}
+                                {migrationDetail.data.data.row_version}
+                              </div>
+                            </div>
+                          )}
                       </div>
-                      <div className="mt-1 text-[#5c5c5c] break-all">Source: {migration.source_curriculum_id}</div>
-                      <div className="text-[#5c5c5c] break-all">Target: {migration.target_curriculum_id}</div>
-                      {migration.effective_at && <div className="text-[#808080] mt-1">Effective: {migration.effective_at}</div>}
-                      {previewMigrationId === migration.id && previewMigration.isFetching && (
-                        <div className="mt-2 text-[#808080]">Loading preview...</div>
-                      )}
-                      {previewMigrationId === migration.id && previewMigration.data && (
-                        <div className="mt-2 rounded-[6px] border border-[#d2e4ff] bg-[#f0f8ff] p-2 text-[#334155]">
-                          <div className="font-semibold">Affected student scope</div>
-                          <pre className="mt-1 max-h-24 overflow-auto whitespace-pre-wrap font-mono text-[11px]">
-                            {JSON.stringify(previewMigration.data.data.affected_student_scope, null, 2)}
-                          </pre>
-                          <div className="mt-1 text-[#5c5c5c]">{previewMigration.data.data.note}</div>
-                        </div>
-                      )}
-                      {detailMigrationId === migration.id && migrationDetail.isFetching && (
-                        <div className="mt-2 text-[#808080]">Loading details...</div>
-                      )}
-                      {detailMigrationId === migration.id && migrationDetail.data && (
-                        <div className="mt-2 rounded-[6px] border border-[#e5e5e5] bg-white p-2 text-[#334155]">
-                          <div className="font-semibold">Migration details</div>
-                          <div className="mt-1">Status: {migrationDetail.data.data.status}</div>
-                          <div>Reason: {migrationDetail.data.data.reason || "None"}</div>
-                          <div>Row version: {migrationDetail.data.data.row_version}</div>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+                    ))}
+                  </div>
+                )}
             </div>
 
             {/* Left Content Column */}
@@ -418,7 +514,9 @@ export function CohortMigrationWizard({
                   Source Curriculum ID (UUID)
                   <input
                     value={sourceCurriculumId}
-                    onChange={(event) => setSourceCurriculumId(event.target.value)}
+                    onChange={(event) =>
+                      setSourceCurriculumId(event.target.value)
+                    }
                     placeholder="Source curriculum UUID"
                     className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 text-[13px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
                   />
@@ -427,7 +525,9 @@ export function CohortMigrationWizard({
                   Target Curriculum ID (UUID)
                   <input
                     value={targetCurriculumId}
-                    onChange={(event) => setTargetCurriculumId(event.target.value)}
+                    onChange={(event) =>
+                      setTargetCurriculumId(event.target.value)
+                    }
                     placeholder="Target curriculum UUID"
                     className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 text-[13px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
                   />
@@ -1088,7 +1188,9 @@ export function CohortMigrationWizard({
                     <textarea
                       rows={3}
                       value={affectedStudentScope}
-                      onChange={(event) => setAffectedStudentScope(event.target.value)}
+                      onChange={(event) =>
+                        setAffectedStudentScope(event.target.value)
+                      }
                       className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 font-mono text-[12px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
                     />
                   </label>
@@ -1097,7 +1199,9 @@ export function CohortMigrationWizard({
                     <textarea
                       rows={3}
                       value={courseEquivalenceMapping}
-                      onChange={(event) => setCourseEquivalenceMapping(event.target.value)}
+                      onChange={(event) =>
+                        setCourseEquivalenceMapping(event.target.value)
+                      }
                       className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 font-mono text-[12px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
                     />
                   </label>
@@ -1106,7 +1210,9 @@ export function CohortMigrationWizard({
                     <textarea
                       rows={3}
                       value={creditTreatment}
-                      onChange={(event) => setCreditTreatment(event.target.value)}
+                      onChange={(event) =>
+                        setCreditTreatment(event.target.value)
+                      }
                       className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 font-mono text-[12px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
                     />
                   </label>
@@ -1115,7 +1221,9 @@ export function CohortMigrationWizard({
                     <textarea
                       rows={3}
                       value={unmetRequirementHandling}
-                      onChange={(event) => setUnmetRequirementHandling(event.target.value)}
+                      onChange={(event) =>
+                        setUnmetRequirementHandling(event.target.value)
+                      }
                       className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 font-mono text-[12px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
                     />
                   </label>
@@ -1126,7 +1234,11 @@ export function CohortMigrationWizard({
                   <input
                     type="datetime-local"
                     value={effectiveAt.slice(0, 16)}
-                    onChange={(event) => setEffectiveAt(event.target.value ? `${event.target.value}:00Z` : '')}
+                    onChange={(event) =>
+                      setEffectiveAt(
+                        event.target.value ? `${event.target.value}:00Z` : "",
+                      )
+                    }
                     className="rounded-[8px] border border-[#d9d9d9] px-3 py-2 text-[13px] font-normal normal-case tracking-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
                   />
                 </label>
@@ -1144,7 +1256,11 @@ export function CohortMigrationWizard({
                     className="flex-1 py-2.5 bg-[#046aff] hover:bg-[#0356d6] text-white rounded-[10px] text-[13px] font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
                   >
                     <Send className="w-3.5 h-3.5" />
-                    <span>{createMigration.isPending ? 'Submitting...' : 'Submit for Review'}</span>
+                    <span>
+                      {createMigration.isPending
+                        ? "Submitting..."
+                        : "Submit for Review"}
+                    </span>
                   </button>
                 </div>
               </div>
