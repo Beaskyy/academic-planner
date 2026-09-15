@@ -7,6 +7,10 @@ interface ReturnCandidateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onReturn: (reason: string) => void;
+  title?: string;
+  statusLabel?: string;
+  isPending?: boolean;
+  errorMessage?: string;
 }
 
 const QUICK_TAGS = [
@@ -16,7 +20,15 @@ const QUICK_TAGS = [
   'Validation evidence insufficient',
 ];
 
-export function ReturnCandidateModal({ isOpen, onClose, onReturn }: ReturnCandidateModalProps) {
+export function ReturnCandidateModal({
+  isOpen,
+  onClose,
+  onReturn,
+  title = 'Publication review',
+  statusLabel = 'AWAITING REVIEW',
+  isPending = false,
+  errorMessage,
+}: ReturnCandidateModalProps) {
   const [reason, setReason] = useState('');
 
   if (!isOpen) return null;
@@ -31,9 +43,8 @@ export function ReturnCandidateModal({ isOpen, onClose, onReturn }: ReturnCandid
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (reason.trim().length < 10) return;
+    if (reason.trim().length < 10 || isPending) return;
     onReturn(reason);
-    onClose();
   };
 
   return (
@@ -59,10 +70,10 @@ export function ReturnCandidateModal({ isOpen, onClose, onReturn }: ReturnCandid
           <div className="bg-[#fafafa] border border-[#f0f0f0] rounded-[12px] p-4 flex flex-col gap-1.5">
             <div className="flex items-center gap-2.5 flex-wrap">
               <span className="bg-[#fa7319] text-white text-[11px] font-semibold px-2 py-0.5 rounded-full uppercase tracking-wider">
-                AWAITING REVIEW
+                {statusLabel}
               </span>
               <h4 className="text-[14px] font-bold text-[#0b0b0b]">
-                Academic Calendar 2026/27 — Semester 1
+                {title}
               </h4>
             </div>
             <p className="text-[12px] text-[#808080]">
@@ -115,6 +126,15 @@ export function ReturnCandidateModal({ isOpen, onClose, onReturn }: ReturnCandid
             The current published version will remain authoritative. The maker will receive a new editable revision with your feedback.
           </div>
 
+          {errorMessage && (
+            <div
+              role="alert"
+              className="rounded-[10px] border border-[#F69999] bg-[#FEF0F0] px-3 py-2 text-[12px] text-[#B91C1C]"
+            >
+              {errorMessage}
+            </div>
+          )}
+
           {/* Footer Buttons */}
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
             <button
@@ -126,9 +146,10 @@ export function ReturnCandidateModal({ isOpen, onClose, onReturn }: ReturnCandid
             </button>
             <button
               type="submit"
-              className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#fb3748] hover:bg-[#dc2626] text-white rounded-[10px] text-[14px] font-medium transition-colors shadow-sm cursor-pointer"
+              disabled={reason.trim().length < 10 || isPending}
+              className="inline-flex items-center gap-1.5 px-5 py-2.5 bg-[#fb3748] hover:bg-[#dc2626] text-white rounded-[10px] text-[14px] font-medium transition-colors shadow-sm cursor-pointer disabled:opacity-50"
             >
-              <span>Return to Maker</span>
+              <span>{isPending ? 'Returning...' : 'Return to Maker'}</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

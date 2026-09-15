@@ -97,7 +97,11 @@ export function OfferingsView() {
       <main className="flex-1 min-w-0 flex flex-col">
         {currentView === "dashboard" && (
           <OfferingsDashboard
-            onCreateOffering={() => switchView("edit", "CSC 101-A")}
+            onCreateOffering={() => {
+              setSelectedOfferingId(undefined);
+              setSelectedOfferingRowVersion(undefined);
+              switchView("edit", "NEW-A");
+            }}
             onEditOffering={handleEditOffering}
             onOpenMobileMenu={() => setMobileMenuOpen(true)}
           />

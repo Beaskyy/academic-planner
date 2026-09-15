@@ -14,8 +14,12 @@ import {
   Menu,
 } from "lucide-react";
 import {
+  useCancelCourseOffering,
+  useCloseCourseOfferingRegistration,
   useCourseOffering,
   useCreateCourseOffering,
+  useOpenCourseOfferingRegistration,
+  useSubmitCourseOffering,
   useUpdateCourseOffering,
 } from "@/hooks/use-course-offerings";
 
@@ -71,9 +75,18 @@ export function OfferingEditor({
   const [registrationAvailability, setRegistrationAvailability] =
     useState("open");
   const [formError, setFormError] = useState<string | null>(null);
+  const [currentOfferingId, setCurrentOfferingId] = useState(offeringId);
+  const [currentRowVersion, setCurrentRowVersion] = useState(rowVersion ?? 1);
+  const [toastMessage, setToastMessage] = useState(
+    "Course offering changes saved successfully!",
+  );
   const createOffering = useCreateCourseOffering();
   const updateOffering = useUpdateCourseOffering();
-  const offeringQuery = useCourseOffering(offeringId);
+  const submitOffering = useSubmitCourseOffering();
+  const openRegistration = useOpenCourseOfferingRegistration();
+  const closeRegistration = useCloseCourseOfferingRegistration();
+  const cancelOffering = useCancelCourseOffering();
+  const offeringQuery = useCourseOffering(currentOfferingId);
 
   const [tutors, setTutors] = useState([
     { id: "tut-1", name: "Dr. Ada Lovelace", role: "Assigned as Tutor" },
@@ -82,12 +95,18 @@ export function OfferingEditor({
   const [isSavedToast, setIsSavedToast] = useState(false);
 
   useEffect(() => {
+    setCurrentOfferingId(offeringId);
+    setCurrentRowVersion(rowVersion);
+  }, [offeringId, rowVersion]);
+
+  useEffect(() => {
     const offering = offeringQuery.data?.data;
     if (!offering) return;
     setCourseId(offering.course_id);
     setAcademicSessionId(offering.academic_session_id);
     setAcademicPeriodId(offering.academic_period_id || "");
     setTargetCapacity(String(offering.capacity));
+    setCurrentRowVersion(offering.row_version);
     setDeliveryMode(
       offering.delivery_mode === "Online" || offering.delivery_mode === "Hybrid"
         ? offering.delivery_mode
@@ -149,24 +168,32 @@ export function OfferingEditor({
       registration_availability: registrationAvailability.trim() || null,
     };
 
-    if (offeringId) {
+    const showSuccess = (message: string, leave = true) => {
+      setToastMessage(message);
+      setIsSavedToast(true);
+      setTimeout(() => {
+        setIsSavedToast(false);
+        if (leave) onSave();
+      }, 1200);
+    };
+
+    if (currentOfferingId) {
       updateOffering.mutate(
         {
-          offeringId,
+          offeringId: currentOfferingId,
           payload: {
-            row_version: rowVersion,
+            row_version: currentRowVersion,
             capacity,
             delivery_mode: deliveryMode,
             registration_availability: registrationAvailability.trim() || null,
           },
         },
         {
-          onSuccess: () => {
-            setIsSavedToast(true);
-            setTimeout(() => {
-              setIsSavedToast(false);
-              onSave();
-            }, 1200);
+          onSuccess: (response) => {
+            setCurrentRowVersion(response.data.row_version);
+            showSuccess(
+              response.message || "Course offering changes saved successfully!",
+            );
           },
         },
       );
@@ -174,19 +201,114 @@ export function OfferingEditor({
     }
 
     createOffering.mutate(payload, {
-      onSuccess: () => {
-        setIsSavedToast(true);
-        setTimeout(() => {
-          setIsSavedToast(false);
-          onSave();
-        }, 1200);
+      onSuccess: (response) => {
+        setCurrentOfferingId(response.data.id);
+        setCurrentRowVersion(response.data.row_version);
+        showSuccess(
+          response.message || "Course offering created successfully!",
+        );
       },
     });
+  };
+
+  const requireSavedOffering = () => {
+    if (!currentOfferingId) {
+      setFormError("Save the course offering before this action.");
+      return false;
+    }
+    return true;
+  };
+
+  const handleSubmitOffering = () => {
+    setFormError(null);
+    if (!requireSavedOffering()) return;
+    submitOffering.mutate(
+      {
+        offeringId: currentOfferingId!,
+        payload: { row_version: currentRowVersion },
+      },
+      {
+        onSuccess: (response) => {
+          setCurrentRowVersion(response.data.row_version);
+          setToastMessage(
+            response.message || "Course offering submitted for review.",
+          );
+          setIsSavedToast(true);
+          setTimeout(() => {
+            setIsSavedToast(false);
+            onSave();
+          }, 1200);
+        },
+      },
+    );
+  };
+
+  const handleToggleRegistration = () => {
+    setFormError(null);
+    if (!requireSavedOffering()) return;
+    const isOpen = registrationAvailability.toLowerCase().includes("open");
+    const mutation = isOpen ? closeRegistration : openRegistration;
+    mutation.mutate(
+      {
+        offeringId: currentOfferingId!,
+        payload: { row_version: currentRowVersion },
+      },
+      {
+        onSuccess: (response) => {
+          setCurrentRowVersion(response.data.row_version);
+          setRegistrationAvailability(
+            response.data.registration_availability || (isOpen ? "closed" : "open"),
+          );
+          setToastMessage(
+            response.message ||
+              (isOpen
+                ? "Registration closed for this offering."
+                : "Registration opened for this offering."),
+          );
+          setIsSavedToast(true);
+          setTimeout(() => setIsSavedToast(false), 1200);
+        },
+      },
+    );
+  };
+
+  const handleCancelOffering = () => {
+    setFormError(null);
+    if (!requireSavedOffering()) return;
+    cancelOffering.mutate(
+      {
+        offeringId: currentOfferingId!,
+        payload: { row_version: currentRowVersion },
+      },
+      {
+        onSuccess: (response) => {
+          setToastMessage(
+            response.message || "Course offering cancelled successfully.",
+          );
+          setIsSavedToast(true);
+          setTimeout(() => {
+            setIsSavedToast(false);
+            onSave();
+          }, 1200);
+        },
+      },
+    );
   };
 
   const removeTutor = (id: string) => {
     setTutors(tutors.filter((t) => t.id !== id));
   };
+
+  const isBusy =
+    createOffering.isPending ||
+    updateOffering.isPending ||
+    submitOffering.isPending ||
+    openRegistration.isPending ||
+    closeRegistration.isPending ||
+    cancelOffering.isPending;
+  const isRegistrationOpen = registrationAvailability
+    .toLowerCase()
+    .includes("open");
 
   return (
     <div className="flex-1 min-w-0 bg-[#fafafa] flex flex-col">
@@ -194,13 +316,17 @@ export function OfferingEditor({
       {isSavedToast && (
         <div className="fixed top-4 right-4 z-50 bg-[#166534] text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
           <CheckCircle2 className="w-4 h-4" />
-          <span>Course offering changes saved successfully!</span>
+          <span>{toastMessage}</span>
         </div>
       )}
       {(formError ||
         offeringQuery.isError ||
         createOffering.isError ||
-        updateOffering.isError) && (
+        updateOffering.isError ||
+        submitOffering.isError ||
+        openRegistration.isError ||
+        closeRegistration.isError ||
+        cancelOffering.isError) && (
         <div
           className="fixed top-4 right-4 z-50 mt-14 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg"
           role="alert"
@@ -208,12 +334,28 @@ export function OfferingEditor({
           {formError ||
             offeringQuery.error?.message ||
             createOffering.error?.message ||
-            updateOffering.error?.message}
+            updateOffering.error?.message ||
+            submitOffering.error?.message ||
+            openRegistration.error?.message ||
+            closeRegistration.error?.message ||
+            cancelOffering.error?.message}
           {createOffering.error?.rawErrors?.map((error, index) => (
             <div key={`${error.type}-${index}`}>{error.msg}</div>
           ))}
           {updateOffering.error?.rawErrors?.map((error, index) => (
             <div key={`update-${error.type}-${index}`}>{error.msg}</div>
+          ))}
+          {submitOffering.error?.rawErrors?.map((error, index) => (
+            <div key={`submit-${error.type}-${index}`}>{error.msg}</div>
+          ))}
+          {openRegistration.error?.rawErrors?.map((error, index) => (
+            <div key={`open-${error.type}-${index}`}>{error.msg}</div>
+          ))}
+          {closeRegistration.error?.rawErrors?.map((error, index) => (
+            <div key={`close-${error.type}-${index}`}>{error.msg}</div>
+          ))}
+          {cancelOffering.error?.rawErrors?.map((error, index) => (
+            <div key={`cancel-${error.type}-${index}`}>{error.msg}</div>
           ))}
           {offeringQuery.error?.rawErrors?.map((error, index) => (
             <div key={`detail-${error.type}-${index}`}>{error.msg}</div>
@@ -602,24 +744,43 @@ export function OfferingEditor({
         </div>
 
         {/* Footer Actions */}
-        <div className="bg-white border border-[#ebebeb] rounded-[16px] p-4 shadow-xs flex items-center justify-between gap-4 mt-2">
+        <div className="bg-white border border-[#ebebeb] rounded-[16px] p-4 shadow-xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 mt-2">
           <button
-            onClick={onDeleteOffering || onCancel}
-            className="px-4 py-2 border border-[#fecaca] bg-[#fff5f5] hover:bg-[#fee2e2] text-[#dc2626] rounded-[10px] text-[13px] font-semibold transition-colors cursor-pointer"
+            onClick={handleCancelOffering}
+            disabled={isBusy || !currentOfferingId}
+            className="px-4 py-2 border border-[#fecaca] bg-[#fff5f5] hover:bg-[#fee2e2] text-[#dc2626] rounded-[10px] text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
           >
-            Delete Offering
+            {cancelOffering.isPending ? "Cancelling..." : "Cancel Offering"}
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center justify-end gap-3">
             <button
               onClick={onCancel}
               className="px-4 py-2 border border-[#d9d9d9] bg-white hover:bg-[#f5f5f5] text-[#1f1f1f] rounded-[10px] text-[13px] font-semibold transition-colors cursor-pointer"
             >
-              Cancel
+              Back
+            </button>
+            <button
+              onClick={handleToggleRegistration}
+              disabled={isBusy || !currentOfferingId}
+              className="px-4 py-2 border border-[#046aff] bg-white hover:bg-[#f0f8ff] text-[#046aff] rounded-[10px] text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {openRegistration.isPending || closeRegistration.isPending
+                ? "Updating registration..."
+                : isRegistrationOpen
+                  ? "Close Registration"
+                  : "Open Registration"}
+            </button>
+            <button
+              onClick={handleSubmitOffering}
+              disabled={isBusy || !currentOfferingId}
+              className="px-4 py-2 border border-[#d9d9d9] bg-white hover:bg-[#f5f5f5] text-[#1f1f1f] rounded-[10px] text-[13px] font-semibold transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {submitOffering.isPending ? "Submitting..." : "Submit for Review"}
             </button>
             <button
               onClick={handleSave}
-              disabled={createOffering.isPending || updateOffering.isPending}
+              disabled={isBusy}
               className="px-5 py-2 bg-[#046aff] hover:bg-[#0356d6] text-white rounded-[10px] text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />

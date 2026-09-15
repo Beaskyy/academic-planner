@@ -6,20 +6,32 @@ import { X, ChevronRight, Check } from 'lucide-react';
 interface ApprovePublicationModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onApprove: (timing: 'immediate' | 'scheduled') => void;
+  onApprove: (reason?: string) => void;
+  title?: string;
+  statusLabel?: string;
+  isPending?: boolean;
+  errorMessage?: string;
 }
 
-export function ApprovePublicationModal({ isOpen, onClose, onApprove }: ApprovePublicationModalProps) {
+export function ApprovePublicationModal({
+  isOpen,
+  onClose,
+  onApprove,
+  title = 'Publication review',
+  statusLabel = 'AWAITING REVIEW',
+  isPending = false,
+  errorMessage,
+}: ApprovePublicationModalProps) {
   const [timing, setTiming] = useState<'immediate' | 'scheduled'>('immediate');
   const [confirmed, setConfirmed] = useState(false);
+  const [reason, setReason] = useState('');
 
   if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!confirmed) return;
-    onApprove(timing);
-    onClose();
+    if (!confirmed || isPending) return;
+    onApprove(reason.trim() || undefined);
   };
 
   return (
@@ -45,14 +57,14 @@ export function ApprovePublicationModal({ isOpen, onClose, onApprove }: ApproveP
           <div className="bg-[#fafafa] border border-[#f0f0f0] rounded-[12px] p-4 flex items-center justify-between gap-4">
             <div className="flex flex-col">
               <h4 className="text-[14px] font-bold text-[#0b0b0b]">
-                Academic Calendar 2026/27 — Semester 1
+                {title}
               </h4>
               <p className="text-[12px] text-[#808080] font-normal">
-                Version 1.4 Draft • Submitted by Dr. Amara Osei
+                Publication review decision
               </p>
             </div>
             <span className="bg-[#fa7319] text-white text-[11px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wider shrink-0">
-              AWAITING REVIEW
+              {statusLabel}
             </span>
           </div>
 
@@ -125,6 +137,29 @@ export function ApprovePublicationModal({ isOpen, onClose, onApprove }: ApproveP
             </ul>
           </div>
 
+          {/* Optional reason */}
+          <div className="space-y-2">
+            <label className="block text-[13px] font-semibold text-[#0b0b0b]">
+              Approval note (optional)
+            </label>
+            <textarea
+              rows={3}
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Add a note for the publication record..."
+              className="w-full bg-[#fafafa] border border-[#d9d9d9] rounded-[10px] p-3 text-[13px] text-[#1f1f1f] focus:outline-none focus:border-[#046aff] focus:bg-white transition-colors"
+            />
+          </div>
+
+          {errorMessage && (
+            <div
+              role="alert"
+              className="rounded-[10px] border border-[#F69999] bg-[#FEF0F0] px-3 py-2 text-[12px] text-[#B91C1C]"
+            >
+              {errorMessage}
+            </div>
+          )}
+
           {/* Confirmation Checkbox */}
           <div className="pt-2 border-t border-gray-100">
             <label className="flex items-start gap-2.5 text-[13px] text-[#1f1f1f] cursor-pointer select-none">
@@ -151,14 +186,14 @@ export function ApprovePublicationModal({ isOpen, onClose, onApprove }: ApproveP
             </button>
             <button
               type="submit"
-              disabled={!confirmed}
+              disabled={!confirmed || isPending}
               className={`inline-flex items-center gap-1.5 px-5 py-2.5 rounded-[10px] text-[14px] font-medium transition-colors shadow-sm ${
-                confirmed
+                confirmed && !isPending
                   ? 'bg-[#335cff] hover:bg-[#254bdb] text-white cursor-pointer'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >
-              <span>Approve &amp; Publish</span>
+              <span>{isPending ? 'Approving...' : 'Approve & Publish'}</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>

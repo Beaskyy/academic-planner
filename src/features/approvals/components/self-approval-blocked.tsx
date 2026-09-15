@@ -1,14 +1,27 @@
 'use client';
 
 import React from 'react';
-import { AlertTriangle, ChevronRight, ArrowLeft } from 'lucide-react';
+import { AlertTriangle, ChevronRight } from 'lucide-react';
+import { usePublicationReview } from '@/hooks/use-publication-reviews';
+import {
+  formatDateTime,
+  formatReviewTitle,
+  formatStatusLabel,
+} from '../review-display';
 
 interface SelfApprovalBlockedProps {
+  reviewId: string;
   onBackToQueue: () => void;
   onSwitchToApproverView?: () => void;
 }
 
-export function SelfApprovalBlocked({ onBackToQueue, onSwitchToApproverView }: SelfApprovalBlockedProps) {
+export function SelfApprovalBlocked({
+  reviewId,
+  onBackToQueue,
+  onSwitchToApproverView,
+}: SelfApprovalBlockedProps) {
+  const reviewQuery = usePublicationReview(reviewId);
+  const review = reviewQuery.data?.data;
   return (
     <div className="flex flex-col gap-6 max-w-[1160px]">
       {/* Breadcrumb & Header */}
@@ -21,13 +34,13 @@ export function SelfApprovalBlocked({ onBackToQueue, onSwitchToApproverView }: S
             Approvals
           </button>
           <span>&gt;</span>
-          <span>Academic Calendar 2026/27</span>
+          <span>{review ? formatReviewTitle(review) : 'Publication review'}</span>
           <span>&gt;</span>
           <span className="font-semibold text-[#0b0b0b]">Review</span>
         </div>
         <div className="flex items-center justify-between gap-4">
           <h1 className="text-[28px] font-bold text-[#0b0b0b] tracking-tight">
-            Review Academic Calendar
+            {review ? `Review ${formatReviewTitle(review)}` : 'Review publication'}
           </h1>
           {onSwitchToApproverView && (
             <button
@@ -45,21 +58,21 @@ export function SelfApprovalBlocked({ onBackToQueue, onSwitchToApproverView }: S
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="bg-[#f4ebff] text-[#7f56d9] text-[11px] font-semibold px-2.5 py-0.5 rounded-full uppercase tracking-wide">
-              CALENDAR ARTIFACT
+              {review ? formatStatusLabel(review.artifact_type) : 'Publication'}
             </span>
             <span className="text-[13px] font-normal text-[#808080]">
-              ID: CAL-2026-R3
+              ID: {review?.artifact_id ?? reviewId}
             </span>
           </div>
           <h2 className="text-[20px] font-bold text-[#0b0b0b]">
-            Academic Calendar 2026/2027 draft
+            {review ? formatReviewTitle(review) : 'Loading publication review...'}
           </h2>
           <p className="text-[13px] text-[#5c5c5c]">
-            Submitted by <span className="font-semibold text-[#0b0b0b]">Dr. Amara Osei (VP Academic)</span> on Sep 15, 2026 at 14:30 WAT
+            Submitted {review ? formatDateTime(review.submitted_at) : '—'}
           </p>
         </div>
         <span className="bg-[#fa7319] text-white text-[11px] font-semibold px-3 py-1 rounded-full uppercase tracking-wider self-start sm:self-center">
-          AWAITING REVIEW
+          {review ? formatStatusLabel(review.status) : 'AWAITING REVIEW'}
         </span>
       </div>
 
