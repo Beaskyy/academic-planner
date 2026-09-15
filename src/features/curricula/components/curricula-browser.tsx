@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   ChevronRight,
   Filter,
@@ -13,8 +13,9 @@ import {
   Clock,
   Sparkles,
   Menu,
-} from 'lucide-react';
-import { StatusTag } from '@/features/planning-home/components/status-tag';
+} from "lucide-react";
+import { StatusTag } from "@/features/planning-home/components/status-tag";
+import { useListCurricula, usePinnedCurriculum } from "@/hooks/use-curricula";
 
 interface CurriculaBrowserProps {
   onRevise: () => void;
@@ -29,39 +30,49 @@ export function CurriculaBrowser({
   onSelectRulesTab,
   onOpenMobileMenu,
 }: CurriculaBrowserProps) {
-  const [selectedProgramme, setSelectedProgramme] = useState('BSc Computer Science');
-  const [selectedCohort, setSelectedCohort] = useState('2026/2027');
+  const curriculaQuery = useListCurricula();
+  const [selectedProgramme, setSelectedProgramme] = useState(
+    "BSc Computer Science",
+  );
+  const [selectedCohort, setSelectedCohort] = useState("2026/2027");
+  const [programmeId, setProgrammeId] = useState("");
+  const pinnedCurriculumQuery = usePinnedCurriculum({
+    programme_id: programmeId.trim(),
+    cohort_intake: selectedCohort,
+  });
 
   const courseMappings = [
     {
-      code: 'CSC 301',
-      title: 'Software Engineering Methodologies',
-      role: 'Required',
-      contribution: 'Core Computer Science Requirements',
-      group: 'None',
+      code: "CSC 301",
+      title: "Software Engineering Methodologies",
+      role: "Required",
+      contribution: "Core Computer Science Requirements",
+      group: "None",
     },
     {
-      code: 'CSC 305',
-      title: 'Database Management Systems',
-      role: 'Required',
-      contribution: 'Core Computer Science Requirements',
-      group: 'None',
+      code: "CSC 305",
+      title: "Database Management Systems",
+      role: "Required",
+      contribution: "Core Computer Science Requirements",
+      group: "None",
     },
     {
-      code: 'CSC 310',
-      title: 'Distributed Systems & Cloud',
-      role: 'Elective',
-      contribution: 'Advanced Software Track Elective',
-      group: 'Group A',
+      code: "CSC 310",
+      title: "Distributed Systems & Cloud",
+      role: "Elective",
+      contribution: "Advanced Software Track Elective",
+      group: "Group A",
     },
     {
-      code: 'MTH 302',
-      title: 'Numerical Analysis',
-      role: 'Required',
-      contribution: 'Mathematics Foundations',
-      group: 'None',
+      code: "MTH 302",
+      title: "Numerical Analysis",
+      role: "Required",
+      contribution: "Mathematics Foundations",
+      group: "None",
     },
   ];
+
+  const curriculumItems = curriculaQuery.data?.data.items ?? [];
 
   return (
     <div className="flex-1 min-w-0 bg-[#fafafa] flex flex-col">
@@ -78,7 +89,9 @@ export function CurriculaBrowser({
             </button>
             <span>Academic Planning</span>
             <ChevronRight className="w-3.5 h-3.5 text-[#a3a3a3]" />
-            <span className="text-[#1f1f1f] font-semibold">Curricula &amp; Rules</span>
+            <span className="text-[#1f1f1f] font-semibold">
+              Curricula &amp; Rules
+            </span>
           </div>
           <h1 className="text-2xl font-bold text-[#1f1f1f] tracking-tight">
             Curricula &amp; Rules
@@ -131,9 +144,15 @@ export function CurriculaBrowser({
               onChange={(e) => setSelectedProgramme(e.target.value)}
               className="w-full bg-[#fafafa] border border-[#d9d9d9] rounded-[10px] px-3 py-2 text-[13px] font-medium text-[#1f1f1f] appearance-none cursor-pointer focus:outline-none focus:border-[#046aff]"
             >
-              <option value="BSc Computer Science">Programme: BSc Computer Science</option>
-              <option value="BSc Software Engineering">Programme: BSc Software Engineering</option>
-              <option value="BSc Data Science">Programme: BSc Data Science</option>
+              <option value="BSc Computer Science">
+                Programme: BSc Computer Science
+              </option>
+              <option value="BSc Software Engineering">
+                Programme: BSc Software Engineering
+              </option>
+              <option value="BSc Data Science">
+                Programme: BSc Data Science
+              </option>
             </select>
             <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#808080]">
               ▾
@@ -154,7 +173,170 @@ export function CurriculaBrowser({
               ▾
             </div>
           </div>
+
+          <input
+            value={programmeId}
+            onChange={(event) => setProgrammeId(event.target.value)}
+            placeholder="Programme UUID for pinned curriculum"
+            aria-label="Programme UUID for pinned curriculum"
+            className="min-w-[280px] flex-1 bg-[#fafafa] border border-[#d9d9d9] rounded-[10px] px-3 py-2 text-[13px] text-[#1f1f1f] focus:outline-none focus:border-[#046aff]"
+          />
         </div>
+
+        <section className="bg-white border border-[#ebebeb] rounded-[16px] p-6 shadow-xs flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-[16px] font-bold text-[#1f1f1f]">
+                Pinned Curriculum
+              </h2>
+              <p className="text-[12px] text-[#808080] mt-1">
+                Enter a programme UUID to load the pinned curriculum for the
+                selected cohort.
+              </p>
+            </div>
+            {pinnedCurriculumQuery.isFetching && (
+              <span className="text-[12px] text-[#808080]">Loading...</span>
+            )}
+          </div>
+
+          {pinnedCurriculumQuery.isError && (
+            <div
+              role="alert"
+              className="rounded-[10px] border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-[13px] text-[#b91c1c]"
+            >
+              {pinnedCurriculumQuery.error.message}
+              {pinnedCurriculumQuery.error.rawErrors?.map((error, index) => (
+                <div key={`${error.type}-${index}`}>{error.msg}</div>
+              ))}
+            </div>
+          )}
+
+          {pinnedCurriculumQuery.data && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[#808080]">
+                  Curriculum ID
+                </div>
+                <div className="mt-1 text-[13px] font-semibold text-[#1f1f1f] break-all">
+                  {pinnedCurriculumQuery.data.data.id}
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[#808080]">
+                  Status
+                </div>
+                <div className="mt-1 text-[13px] font-semibold text-[#1f1f1f]">
+                  {pinnedCurriculumQuery.data.data.status}
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[#808080]">
+                  Version
+                </div>
+                <div className="mt-1 text-[13px] font-semibold text-[#1f1f1f]">
+                  v{pinnedCurriculumQuery.data.data.version_number}
+                </div>
+              </div>
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-wider text-[#808080]">
+                  Credits
+                </div>
+                <div className="mt-1 text-[13px] font-semibold text-[#1f1f1f]">
+                  {pinnedCurriculumQuery.data.data.minimum_credits ?? "—"} /{" "}
+                  {pinnedCurriculumQuery.data.data.total_credits ?? "—"}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!programmeId.trim() && (
+            <p className="text-[13px] text-[#808080]">
+              No programme UUID selected.
+            </p>
+          )}
+        </section>
+
+        <section className="bg-white border border-[#ebebeb] rounded-[16px] p-6 shadow-xs flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-[16px] font-bold text-[#1f1f1f]">
+                Curriculum Records
+              </h2>
+              <p className="text-[12px] text-[#808080] mt-1">
+                {curriculaQuery.data
+                  ? `${curriculaQuery.data.data.total} record${curriculaQuery.data.data.total === 1 ? "" : "s"}`
+                  : "Loading curriculum records..."}
+              </p>
+            </div>
+            {curriculaQuery.isFetching && (
+              <span className="text-[12px] text-[#808080]">Refreshing...</span>
+            )}
+          </div>
+
+          {curriculaQuery.isError && (
+            <div
+              role="alert"
+              className="rounded-[10px] border border-[#fecaca] bg-[#fef2f2] px-4 py-3 text-[13px] text-[#b91c1c]"
+            >
+              {curriculaQuery.error.message}
+              {curriculaQuery.error.rawErrors?.map((error, index) => (
+                <div key={`${error.type}-${index}`}>{error.msg}</div>
+              ))}
+            </div>
+          )}
+
+          {!curriculaQuery.isLoading &&
+            !curriculaQuery.isError &&
+            curriculumItems.length === 0 && (
+              <p className="text-[13px] text-[#808080]">
+                No curriculum records found.
+              </p>
+            )}
+
+          {curriculumItems.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse min-w-[700px]">
+                <thead>
+                  <tr className="border-b border-[#f0f0f0] text-[11px] font-bold text-[#808080] uppercase tracking-wider">
+                    <th className="py-3 px-3">Programme ID</th>
+                    <th className="py-3 px-3">Cohort Intake</th>
+                    <th className="py-3 px-3">Credits</th>
+                    <th className="py-3 px-3">Status</th>
+                    <th className="py-3 px-3">Version</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#f5f5f5] text-[13px]">
+                  {curriculumItems.map((curriculum) => (
+                    <tr
+                      key={curriculum.id}
+                      className="hover:bg-[#fafafa] transition-colors"
+                    >
+                      <td className="py-3.5 px-3 font-medium text-[#1f1f1f]">
+                        {curriculum.programme_id}
+                      </td>
+                      <td className="py-3.5 px-3 text-[#5c5c5c]">
+                        {curriculum.cohort_intake}
+                      </td>
+                      <td className="py-3.5 px-3 text-[#5c5c5c]">
+                        {curriculum.minimum_credits ?? "—"} /{" "}
+                        {curriculum.total_credits ?? "—"}
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <StatusTag
+                          label={curriculum.status}
+                          variant="published"
+                        />
+                      </td>
+                      <td className="py-3.5 px-3 text-[#5c5c5c]">
+                        v{curriculum.version_number}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </section>
 
         {/* Programme Overview Card */}
         <div className="bg-white border border-[#ebebeb] rounded-[16px] p-6 shadow-xs flex flex-col gap-6">
@@ -241,9 +423,9 @@ export function CurriculaBrowser({
                     <td className="py-3.5 px-3">
                       <span
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-semibold ${
-                          c.role === 'Required'
-                            ? 'bg-[#eef4ff] text-[#046aff] border border-[#d2e4ff]'
-                            : 'bg-[#faf5ff] text-[#7e22ce] border border-[#e9d5ff]'
+                          c.role === "Required"
+                            ? "bg-[#eef4ff] text-[#046aff] border border-[#d2e4ff]"
+                            : "bg-[#faf5ff] text-[#7e22ce] border border-[#e9d5ff]"
                         }`}
                       >
                         {c.role}
@@ -252,9 +434,7 @@ export function CurriculaBrowser({
                     <td className="py-3.5 px-3 text-[#5c5c5c]">
                       {c.contribution}
                     </td>
-                    <td className="py-3.5 px-3 text-[#5c5c5c]">
-                      {c.group}
-                    </td>
+                    <td className="py-3.5 px-3 text-[#5c5c5c]">{c.group}</td>
                   </tr>
                 ))}
               </tbody>
