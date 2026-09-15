@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   ChevronRight,
   ArrowLeft,
@@ -12,10 +12,17 @@ import {
   Save,
   User,
   Menu,
-} from 'lucide-react';
+} from "lucide-react";
+import {
+  useCourseOffering,
+  useCreateCourseOffering,
+  useUpdateCourseOffering,
+} from "@/hooks/use-course-offerings";
 
 interface OfferingEditorProps {
   sectionCode?: string;
+  offeringId?: string;
+  rowVersion?: number;
   leadInstructor?: {
     name: string;
     department: string;
@@ -29,11 +36,13 @@ interface OfferingEditorProps {
 }
 
 export function OfferingEditor({
-  sectionCode = 'CSC 301-A',
+  sectionCode = "CSC 301-A",
+  offeringId,
+  rowVersion = 1,
   leadInstructor = {
-    name: 'Dr. Charles Ononiwu',
-    department: 'Dept. of Computer Science',
-    workload: 'Current workload: 2/3 Courses',
+    name: "Dr. Charles Ononiwu",
+    department: "Dept. of Computer Science",
+    workload: "Current workload: 2/3 Courses",
   },
   onCancel,
   onSave,
@@ -42,31 +51,137 @@ export function OfferingEditor({
   onOpenMobileMenu,
 }: OfferingEditorProps) {
   const [courseCode, setCourseCode] = useState(
-    'CSC 301 (2026/2027 v2) — Software Engineering I'
+    "CSC 301 (2026/2027 v2) — Software Engineering I",
   );
   const [sessionPeriod, setSessionPeriod] = useState(
-    '2026/2027 Session — Semester 1'
+    "2026/2027 Session — Semester 1",
   );
   const [programmeContext, setProgrammeContext] = useState(
-    'BSc Computer Science — Year 3'
+    "BSc Computer Science — Year 3",
   );
-  const [deliveryMode, setDeliveryMode] = useState<'In-person' | 'Online' | 'Hybrid'>(
-    'In-person'
-  );
-  const [targetCapacity, setTargetCapacity] = useState('100');
+  const [deliveryMode, setDeliveryMode] = useState<
+    "In-person" | "Online" | "Hybrid"
+  >("In-person");
+  const [targetCapacity, setTargetCapacity] = useState("100");
+  const [courseId, setCourseId] = useState("");
+  const [academicSessionId, setAcademicSessionId] = useState("");
+  const [academicPeriodId, setAcademicPeriodId] = useState("");
+  const [eligibleCurriculumIds, setEligibleCurriculumIds] = useState("[]");
+  const [eligibleProgrammeIds, setEligibleProgrammeIds] = useState("[]");
+  const [registrationAvailability, setRegistrationAvailability] =
+    useState("open");
+  const [formError, setFormError] = useState<string | null>(null);
+  const createOffering = useCreateCourseOffering();
+  const updateOffering = useUpdateCourseOffering();
+  const offeringQuery = useCourseOffering(offeringId);
 
   const [tutors, setTutors] = useState([
-    { id: 'tut-1', name: 'Dr. Ada Lovelace', role: 'Assigned as Tutor' },
+    { id: "tut-1", name: "Dr. Ada Lovelace", role: "Assigned as Tutor" },
   ]);
 
   const [isSavedToast, setIsSavedToast] = useState(false);
 
+  useEffect(() => {
+    const offering = offeringQuery.data?.data;
+    if (!offering) return;
+    setCourseId(offering.course_id);
+    setAcademicSessionId(offering.academic_session_id);
+    setAcademicPeriodId(offering.academic_period_id || "");
+    setTargetCapacity(String(offering.capacity));
+    setDeliveryMode(
+      offering.delivery_mode === "Online" || offering.delivery_mode === "Hybrid"
+        ? offering.delivery_mode
+        : "In-person",
+    );
+    setRegistrationAvailability(offering.registration_availability || "");
+    setEligibleCurriculumIds(JSON.stringify(offering.eligible_curriculum_ids));
+    setEligibleProgrammeIds(JSON.stringify(offering.eligible_programme_ids));
+  }, [offeringQuery.data]);
+
+  const parseIdArray = (value: string, label: string): string[] | null => {
+    try {
+      const parsed: unknown = JSON.parse(value);
+      if (
+        !Array.isArray(parsed) ||
+        parsed.some((item) => typeof item !== "string")
+      ) {
+        setFormError(`${label} must be a JSON array of UUID strings.`);
+        return null;
+      }
+      return parsed;
+    } catch {
+      setFormError(`${label} must contain valid JSON.`);
+      return null;
+    }
+  };
+
   const handleSave = () => {
-    setIsSavedToast(true);
-    setTimeout(() => {
-      setIsSavedToast(false);
-      onSave();
-    }, 1200);
+    setFormError(null);
+    const capacity = Number(targetCapacity);
+    const curriculumIds = parseIdArray(
+      eligibleCurriculumIds,
+      "Eligible curriculum IDs",
+    );
+    const programmeIds = parseIdArray(
+      eligibleProgrammeIds,
+      "Eligible programme IDs",
+    );
+
+    if (!courseId.trim() || !academicSessionId.trim()) {
+      setFormError("Course ID and academic session ID are required.");
+      return;
+    }
+    if (!Number.isInteger(capacity) || capacity <= 0) {
+      setFormError("Capacity must be a positive integer.");
+      return;
+    }
+    if (!curriculumIds || !programmeIds) return;
+
+    const payload = {
+      course_id: courseId.trim(),
+      academic_session_id: academicSessionId.trim(),
+      academic_period_id: academicPeriodId.trim() || null,
+      section_label: sectionCode.trim(),
+      capacity,
+      eligible_curriculum_ids: curriculumIds,
+      eligible_programme_ids: programmeIds,
+      delivery_mode: deliveryMode,
+      registration_availability: registrationAvailability.trim() || null,
+    };
+
+    if (offeringId) {
+      updateOffering.mutate(
+        {
+          offeringId,
+          payload: {
+            row_version: rowVersion,
+            capacity,
+            delivery_mode: deliveryMode,
+            registration_availability: registrationAvailability.trim() || null,
+          },
+        },
+        {
+          onSuccess: () => {
+            setIsSavedToast(true);
+            setTimeout(() => {
+              setIsSavedToast(false);
+              onSave();
+            }, 1200);
+          },
+        },
+      );
+      return;
+    }
+
+    createOffering.mutate(payload, {
+      onSuccess: () => {
+        setIsSavedToast(true);
+        setTimeout(() => {
+          setIsSavedToast(false);
+          onSave();
+        }, 1200);
+      },
+    });
   };
 
   const removeTutor = (id: string) => {
@@ -80,6 +195,29 @@ export function OfferingEditor({
         <div className="fixed top-4 right-4 z-50 bg-[#166534] text-white px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 text-xs font-semibold animate-in fade-in slide-in-from-top-2">
           <CheckCircle2 className="w-4 h-4" />
           <span>Course offering changes saved successfully!</span>
+        </div>
+      )}
+      {(formError ||
+        offeringQuery.isError ||
+        createOffering.isError ||
+        updateOffering.isError) && (
+        <div
+          className="fixed top-4 right-4 z-50 mt-14 max-w-[min(90vw,520px)] rounded-xl border border-[#F69999] bg-[#FEF0F0] px-4 py-3 text-xs font-semibold text-[#B91C1C] shadow-lg"
+          role="alert"
+        >
+          {formError ||
+            offeringQuery.error?.message ||
+            createOffering.error?.message ||
+            updateOffering.error?.message}
+          {createOffering.error?.rawErrors?.map((error, index) => (
+            <div key={`${error.type}-${index}`}>{error.msg}</div>
+          ))}
+          {updateOffering.error?.rawErrors?.map((error, index) => (
+            <div key={`update-${error.type}-${index}`}>{error.msg}</div>
+          ))}
+          {offeringQuery.error?.rawErrors?.map((error, index) => (
+            <div key={`detail-${error.type}-${index}`}>{error.msg}</div>
+          ))}
         </div>
       )}
 
@@ -127,6 +265,73 @@ export function OfferingEditor({
                 Basic Configuration
               </h3>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <label className="flex flex-col gap-1.5 text-[12px] font-bold text-[#1f1f1f]">
+                  Course ID (UUID)
+                  <input
+                    value={courseId}
+                    onChange={(event) => setCourseId(event.target.value)}
+                    placeholder="Course UUID"
+                    className="rounded-[10px] border border-[#d9d9d9] bg-[#fafafa] px-3 py-2.5 text-[13px] font-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-[12px] font-bold text-[#1f1f1f]">
+                  Academic Session ID (UUID)
+                  <input
+                    value={academicSessionId}
+                    onChange={(event) =>
+                      setAcademicSessionId(event.target.value)
+                    }
+                    placeholder="Session UUID"
+                    className="rounded-[10px] border border-[#d9d9d9] bg-[#fafafa] px-3 py-2.5 text-[13px] font-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-[12px] font-bold text-[#1f1f1f]">
+                  Academic Period ID (optional UUID)
+                  <input
+                    value={academicPeriodId}
+                    onChange={(event) =>
+                      setAcademicPeriodId(event.target.value)
+                    }
+                    placeholder="Period UUID"
+                    className="rounded-[10px] border border-[#d9d9d9] bg-[#fafafa] px-3 py-2.5 text-[13px] font-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-[12px] font-bold text-[#1f1f1f]">
+                  Registration Availability
+                  <input
+                    value={registrationAvailability}
+                    onChange={(event) =>
+                      setRegistrationAvailability(event.target.value)
+                    }
+                    maxLength={50}
+                    className="rounded-[10px] border border-[#d9d9d9] bg-[#fafafa] px-3 py-2.5 text-[13px] font-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-[12px] font-bold text-[#1f1f1f] sm:col-span-2">
+                  Eligible Curriculum IDs (JSON array)
+                  <textarea
+                    rows={2}
+                    value={eligibleCurriculumIds}
+                    onChange={(event) =>
+                      setEligibleCurriculumIds(event.target.value)
+                    }
+                    className="rounded-[10px] border border-[#d9d9d9] bg-[#fafafa] px-3 py-2.5 font-mono text-[12px] font-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                  />
+                </label>
+                <label className="flex flex-col gap-1.5 text-[12px] font-bold text-[#1f1f1f] sm:col-span-2">
+                  Eligible Programme IDs (JSON array)
+                  <textarea
+                    rows={2}
+                    value={eligibleProgrammeIds}
+                    onChange={(event) =>
+                      setEligibleProgrammeIds(event.target.value)
+                    }
+                    className="rounded-[10px] border border-[#d9d9d9] bg-[#fafafa] px-3 py-2.5 font-mono text-[12px] font-normal text-[#1f1f1f] focus:border-[#046aff] focus:outline-none"
+                  />
+                </label>
+              </div>
+
               {/* Row 1: Course Version / Catalogue Code */}
               <div className="flex flex-col gap-1.5">
                 <label className="text-[12px] font-bold text-[#1f1f1f]">
@@ -141,7 +346,7 @@ export function OfferingEditor({
                   />
                   {courseCode && (
                     <button
-                      onClick={() => setCourseCode('')}
+                      onClick={() => setCourseCode("")}
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-[#808080] hover:text-[#1f1f1f]"
                     >
                       <X className="w-4 h-4" />
@@ -209,20 +414,22 @@ export function OfferingEditor({
                     Delivery Mode
                   </label>
                   <div className="flex items-center gap-2 pt-1">
-                    {(['In-person', 'Online', 'Hybrid'] as const).map((mode) => (
-                      <button
-                        key={mode}
-                        type="button"
-                        onClick={() => setDeliveryMode(mode)}
-                        className={`flex-1 py-2 px-2.5 rounded-[8px] text-xs font-semibold border transition-colors cursor-pointer text-center ${
-                          deliveryMode === mode
-                            ? 'bg-[#046aff] text-white border-[#046aff]'
-                            : 'bg-white text-[#1f1f1f] border-[#d9d9d9] hover:bg-[#fafafa]'
-                        }`}
-                      >
-                        {mode}
-                      </button>
-                    ))}
+                    {(["In-person", "Online", "Hybrid"] as const).map(
+                      (mode) => (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => setDeliveryMode(mode)}
+                          className={`flex-1 py-2 px-2.5 rounded-[8px] text-xs font-semibold border transition-colors cursor-pointer text-center ${
+                            deliveryMode === mode
+                              ? "bg-[#046aff] text-white border-[#046aff]"
+                              : "bg-white text-[#1f1f1f] border-[#d9d9d9] hover:bg-[#fafafa]"
+                          }`}
+                        >
+                          {mode}
+                        </button>
+                      ),
+                    )}
                   </div>
                 </div>
 
@@ -255,10 +462,10 @@ export function OfferingEditor({
                   <div className="flex items-center gap-3.5">
                     <div className="w-10 h-10 rounded-full bg-[#dbeafe] text-[#046aff] flex items-center justify-center font-bold text-sm shrink-0">
                       {leadInstructor.name
-                        .split(' ')
+                        .split(" ")
                         .map((n) => n[0])
                         .slice(0, 2)
-                        .join('')}
+                        .join("")}
                     </div>
                     <div className="flex flex-col">
                       <span className="text-[14px] font-bold text-[#1f1f1f]">
@@ -301,12 +508,14 @@ export function OfferingEditor({
                     <div className="flex items-center gap-2.5">
                       <div className="w-7 h-7 rounded-full bg-[#ede9fe] text-[#7c3aed] flex items-center justify-center text-xs font-bold">
                         {t.name
-                          .split(' ')
+                          .split(" ")
                           .map((n) => n[0])
                           .slice(0, 2)
-                          .join('')}
+                          .join("")}
                       </div>
-                      <span className="font-semibold text-[#1f1f1f]">{t.name}</span>
+                      <span className="font-semibold text-[#1f1f1f]">
+                        {t.name}
+                      </span>
                       <span className="text-xs text-[#808080]">({t.role})</span>
                     </div>
                     <button
@@ -328,7 +537,9 @@ export function OfferingEditor({
               <div className="flex flex-col gap-2 pt-1 text-[13px] text-[#5c5c5c] font-medium leading-relaxed">
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#046aff]" />
-                  <span>Requires Computer Laboratory (min 100 workstations)</span>
+                  <span>
+                    Requires Computer Laboratory (min 100 workstations)
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#046aff]" />
@@ -371,7 +582,8 @@ export function OfferingEditor({
                       Scheduling overlap risk
                     </span>
                     <span className="text-[11px] text-[#92400e] leading-relaxed">
-                      CSC 301 is a prerequisite of CSC 305. Avoid scheduling both at the same hour.
+                      CSC 301 is a prerequisite of CSC 305. Avoid scheduling
+                      both at the same hour.
                     </span>
                   </div>
                 </div>
@@ -407,10 +619,15 @@ export function OfferingEditor({
             </button>
             <button
               onClick={handleSave}
-              className="px-5 py-2 bg-[#046aff] hover:bg-[#0356d6] text-white rounded-[10px] text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+              disabled={createOffering.isPending || updateOffering.isPending}
+              className="px-5 py-2 bg-[#046aff] hover:bg-[#0356d6] text-white rounded-[10px] text-[13px] font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs disabled:opacity-50"
             >
               <Save className="w-3.5 h-3.5" />
-              <span>Save Changes</span>
+              <span>
+                {createOffering.isPending || updateOffering.isPending
+                  ? "Saving..."
+                  : "Save Changes"}
+              </span>
             </button>
           </div>
         </div>
