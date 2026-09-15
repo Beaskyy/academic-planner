@@ -12,6 +12,7 @@ import {
   ValidationErrorItem,
 } from "@/types/courses";
 import { getSession } from "next-auth/react";
+import { fetchWithAuthHandling } from "@/services/api-client";
 
 const GATEWAY_BASE_URL =
   process.env.NEXT_PUBLIC_GATEWAY_API_URL ||
@@ -81,7 +82,7 @@ export const coursesService = {
     const queryString = query.toString();
     const url = `${GATEWAY_BASE_URL}/api/v1/courses${queryString ? `?${queryString}` : ""}`;
 
-    const res = await fetch(url, {
+    const res = await fetchWithAuthHandling(url, {
       method: "GET",
       headers,
     });
@@ -161,11 +162,14 @@ export const coursesService = {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${GATEWAY_BASE_URL}/api/v1/courses`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-    });
+    const res = await fetchWithAuthHandling(
+      `${GATEWAY_BASE_URL}/api/v1/courses`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      },
+    );
 
     const json = await res.json().catch(() => null);
 
@@ -240,10 +244,13 @@ export const coursesService = {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${GATEWAY_BASE_URL}/api/v1/courses/${courseId}`, {
-      method: "GET",
-      headers,
-    });
+    const res = await fetchWithAuthHandling(
+      `${GATEWAY_BASE_URL}/api/v1/courses/${courseId}`,
+      {
+        method: "GET",
+        headers,
+      },
+    );
 
     const json = await res.json().catch(() => null);
 
@@ -328,11 +335,14 @@ export const coursesService = {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${GATEWAY_BASE_URL}/api/v1/courses/${courseId}`, {
-      method: "PATCH",
-      headers,
-      body: JSON.stringify(payload),
-    });
+    const res = await fetchWithAuthHandling(
+      `${GATEWAY_BASE_URL}/api/v1/courses/${courseId}`,
+      {
+        method: "PATCH",
+        headers,
+        body: JSON.stringify(payload),
+      },
+    );
 
     const json = await res.json().catch(() => null);
 
@@ -409,7 +419,7 @@ export const coursesService = {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const res = await fetch(
+    const res = await fetchWithAuthHandling(
       `${GATEWAY_BASE_URL}/api/v1/courses/${courseId}/submit`,
       {
         method: "POST",

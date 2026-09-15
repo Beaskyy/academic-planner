@@ -7,6 +7,7 @@ import {
   ValidationErrorItem,
 } from "@/types/curricula";
 import { getSession } from "next-auth/react";
+import { fetchWithAuthHandling } from "@/services/api-client";
 
 const GATEWAY_BASE_URL =
   process.env.NEXT_PUBLIC_GATEWAY_API_URL ||
@@ -76,7 +77,7 @@ export const curriculaService = {
     const queryString = query.toString();
     const url = `${GATEWAY_BASE_URL}/api/v1/curricula${queryString ? `?${queryString}` : ""}`;
 
-    const res = await fetch(url, {
+    const res = await fetchWithAuthHandling(url, {
       method: "GET",
       headers,
     });
@@ -155,11 +156,14 @@ export const curriculaService = {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
-    const res = await fetch(`${GATEWAY_BASE_URL}/api/v1/curricula`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-    });
+    const res = await fetchWithAuthHandling(
+      `${GATEWAY_BASE_URL}/api/v1/curricula`,
+      {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+      },
+    );
 
     const json = await res.json().catch(() => null);
 
@@ -204,7 +208,8 @@ export const curriculaService = {
       }
 
       const message =
-        json?.message || `Failed to create curriculum with status ${res.status}`;
+        json?.message ||
+        `Failed to create curriculum with status ${res.status}`;
       throw new CurriculumApiError(message, res.status, json);
     }
 
