@@ -1,6 +1,14 @@
 import {
   CurriculumCreateRequest,
   CurriculumCreateResponse,
+  CurriculumGetResponse,
+  CurriculumSubmitRequest,
+  CurriculumSubmitResponse,
+  PinnedCurriculumQueryParams,
+  PinnedCurriculumResponse,
+  CurriculumCourseMappingCreateRequest,
+  CurriculumCourseMappingCreateResponse,
+  CurriculumCourseMappingListResponse,
   CurriculumListQueryParams,
   CurriculumListResponse,
   CurriculumValidationErrorResponse,
@@ -16,14 +24,14 @@ const GATEWAY_BASE_URL =
 
 export class CurriculumApiError extends Error {
   status: number;
-  data?: any;
+  data?: unknown;
   fieldErrors?: Record<string, string>;
   rawErrors?: ValidationErrorItem[];
 
   constructor(
     message: string,
     status: number,
-    data?: any,
+    data?: unknown,
     fieldErrors?: Record<string, string>,
     rawErrors?: ValidationErrorItem[],
   ) {
@@ -40,6 +48,113 @@ export class CurriculumApiError extends Error {
  * Service for Curricula API operations
  */
 export const curriculaService = {
+  async getCurriculum(
+    curriculumId: string,
+    accessToken?: string,
+  ): Promise<CurriculumGetResponse> {
+    let token = accessToken;
+    if (!token) {
+      const session = await getSession();
+      token = (session as { accessToken?: string } | null)?.accessToken;
+    }
+
+    const res = await fetchWithAuthHandling(
+      `${GATEWAY_BASE_URL}/api/v1/curricula/${curriculumId}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    const json = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      if (res.status === 422) {
+        const errData = json as CurriculumValidationErrorResponse;
+        const rawErrors = Array.isArray(errData?.detail)
+          ? errData.detail
+          : undefined;
+        const message =
+          rawErrors?.map((error) => error.msg).join("; ") ||
+          errData?.message ||
+          "Validation error occurred while fetching the curriculum.";
+        throw new CurriculumApiError(
+          message,
+          422,
+          errData,
+          undefined,
+          rawErrors,
+        );
+      }
+
+      throw new CurriculumApiError(
+        json?.message || `Failed to fetch curriculum with status ${res.status}`,
+        res.status,
+        json,
+      );
+    }
+
+    return json as CurriculumGetResponse;
+  },
+  async getPinnedCurriculum(
+    params: PinnedCurriculumQueryParams,
+    accessToken?: string,
+  ): Promise<PinnedCurriculumResponse> {
+    let token = accessToken;
+    if (!token) {
+      const session = await getSession();
+      token = (session as { accessToken?: string } | null)?.accessToken;
+    }
+
+    const query = new URLSearchParams({
+      programme_id: params.programme_id,
+      cohort_intake: params.cohort_intake,
+    });
+    const res = await fetchWithAuthHandling(
+      `${GATEWAY_BASE_URL}/api/v1/curricula/pinned?${query.toString()}`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    const json = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      if (res.status === 422) {
+        const errData = json as CurriculumValidationErrorResponse;
+        const rawErrors = Array.isArray(errData?.detail)
+          ? errData.detail
+          : undefined;
+        const message =
+          rawErrors?.map((error) => error.msg).join("; ") ||
+          errData?.message ||
+          "Validation error occurred while fetching the pinned curriculum.";
+        throw new CurriculumApiError(
+          message,
+          422,
+          errData,
+          undefined,
+          rawErrors,
+        );
+      }
+
+      throw new CurriculumApiError(
+        json?.message ||
+          `Failed to fetch pinned curriculum with status ${res.status}`,
+        res.status,
+        json,
+      );
+    }
+
+    return json as PinnedCurriculumResponse;
+  },
   /**
    * List Curricula with pagination & programme filtering
    * GET /api/v1/curricula
@@ -52,7 +167,7 @@ export const curriculaService = {
     let token = accessToken;
     if (!token) {
       const session = await getSession();
-      token = (session as any)?.accessToken;
+      token = (session as { accessToken?: string } | null)?.accessToken;
     }
 
     const headers: Record<string, string> = {
@@ -144,7 +259,7 @@ export const curriculaService = {
     let token = accessToken;
     if (!token) {
       const session = await getSession();
-      token = (session as any)?.accessToken;
+      token = (session as { accessToken?: string } | null)?.accessToken;
     }
 
     const headers: Record<string, string> = {
@@ -214,5 +329,170 @@ export const curriculaService = {
     }
 
     return json as CurriculumCreateResponse;
+  },
+
+  async submitCurriculum(
+    curriculumId: string,
+    payload: CurriculumSubmitRequest,
+    accessToken?: string,
+  ): Promise<CurriculumSubmitResponse> {
+    let token = accessToken;
+    if (!token) {
+      const session = await getSession();
+      token = (session as { accessToken?: string } | null)?.accessToken;
+    }
+
+    const res = await fetchWithAuthHandling(
+      `${GATEWAY_BASE_URL}/api/v1/curricula/${curriculumId}/submit`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    const json = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      if (res.status === 422) {
+        const errData = json as CurriculumValidationErrorResponse;
+        const rawErrors = Array.isArray(errData?.detail)
+          ? errData.detail
+          : undefined;
+        const message =
+          rawErrors?.map((error) => error.msg).join("; ") ||
+          errData?.message ||
+          "Validation error occurred while submitting the curriculum.";
+        throw new CurriculumApiError(
+          message,
+          422,
+          errData,
+          undefined,
+          rawErrors,
+        );
+      }
+
+      throw new CurriculumApiError(
+        json?.message ||
+          `Failed to submit curriculum with status ${res.status}`,
+        res.status,
+        json,
+      );
+    }
+
+    return json as CurriculumSubmitResponse;
+  },
+
+  async addCourseMapping(
+    curriculumId: string,
+    payload: CurriculumCourseMappingCreateRequest,
+    accessToken?: string,
+  ): Promise<CurriculumCourseMappingCreateResponse> {
+    let token = accessToken;
+    if (!token) {
+      const session = await getSession();
+      token = (session as { accessToken?: string } | null)?.accessToken;
+    }
+
+    const res = await fetchWithAuthHandling(
+      `${GATEWAY_BASE_URL}/api/v1/curricula/${curriculumId}/course-mappings`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      },
+    );
+
+    const json = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      if (res.status === 422) {
+        const errData = json as CurriculumValidationErrorResponse;
+        const rawErrors = Array.isArray(errData?.detail)
+          ? errData.detail
+          : undefined;
+        const message =
+          rawErrors?.map((error) => error.msg).join("; ") ||
+          errData?.message ||
+          "Validation error occurred while adding the course mapping.";
+        throw new CurriculumApiError(
+          message,
+          422,
+          errData,
+          undefined,
+          rawErrors,
+        );
+      }
+
+      throw new CurriculumApiError(
+        json?.message ||
+          `Failed to add course mapping with status ${res.status}`,
+        res.status,
+        json,
+      );
+    }
+
+    return json as CurriculumCourseMappingCreateResponse;
+  },
+
+  async listCourseMappings(
+    curriculumId: string,
+    accessToken?: string,
+  ): Promise<CurriculumCourseMappingListResponse> {
+    let token = accessToken;
+    if (!token) {
+      const session = await getSession();
+      token = (session as { accessToken?: string } | null)?.accessToken;
+    }
+
+    const res = await fetchWithAuthHandling(
+      `${GATEWAY_BASE_URL}/api/v1/curricula/${curriculumId}/course-mappings`,
+      {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      },
+    );
+
+    const json = await res.json().catch(() => null);
+
+    if (!res.ok) {
+      if (res.status === 422) {
+        const errData = json as CurriculumValidationErrorResponse;
+        const rawErrors = Array.isArray(errData?.detail)
+          ? errData.detail
+          : undefined;
+        const message =
+          rawErrors?.map((error) => error.msg).join("; ") ||
+          errData?.message ||
+          "Validation error occurred while fetching course mappings.";
+        throw new CurriculumApiError(
+          message,
+          422,
+          errData,
+          undefined,
+          rawErrors,
+        );
+      }
+
+      throw new CurriculumApiError(
+        json?.message ||
+          `Failed to fetch course mappings with status ${res.status}`,
+        res.status,
+        json,
+      );
+    }
+
+    return json as CurriculumCourseMappingListResponse;
   },
 };
